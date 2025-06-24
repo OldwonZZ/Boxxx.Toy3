@@ -1,1 +1,11 @@
-{"name":"Token #{tokenId}","description":"An example nonfungible token.","image":"/assets/02_Regular.png","attributes":[{"trait_type":"Rarity","value":"Epic"}]}
+{
+  "name": "Toy3 Mocablock Toy #205",
+  "description": "An example nonfungible token.",
+  "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/legendry.png",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "legendry"
+    }
+  ]
+}
