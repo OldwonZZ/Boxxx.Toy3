@@ -1,0 +1,11 @@
+{
+  "name": "Toy3 Unrevealed #1",
+  "description": "Reveal your collection",
+  "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/refs/heads/main/unrevealed.png",
+  "attributes": [
+    {
+      "trait_type": "Status",
+      "value": "Unrevealed"
+    }
+  ]
+}
