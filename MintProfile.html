@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NFT Profile</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" type="application/javascript"></script>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #fff; }
+    .carousel-outer {
+      width: 80w;
+      max-width: 80vw;
+      margin: 0 auto;
+      overflow: visible;
+      position: relative;
+      user-select: none;
+      padding: 0 48px;
+    }
+    .carousel-container {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: 100%;
+      background: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    .carousel-arrow {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #231F20;
+      cursor: pointer;
+      width: 29px;
+      height: 29px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      user-select: none;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      box-shadow: none;
+    }
+    .carousel-arrow.left { left: 0; }
+    .carousel-arrow.right { right: 0; }
+    .carousel-arrow:disabled {
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    .carousel-track {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      transition: none;
+      width: fit-content;
+      overflow-x: hidden;
+      padding-bottom: 16px;
+      margin: 0;
+    }
+    .nft-card, .nft-card.empty {
+      width: 320px;
+      height: 440px;
+      border-radius: 32px;
+      background: #ebebea;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      position: relative;
+      opacity: 1;
+      filter: none;
+      flex-shrink: 0;
+      transition: box-shadow 0.4s;
+    }
+    .nft-card .card-img, .nft-card.empty .card-img {
+      width: 100%;
+      height: 320px;
+      border-radius: 32px 32px 0 0;
+      background: #888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      color: #fff;
+      font-weight: bold;
+      overflow: hidden;
+      position: relative;
+    }
+    .nft-card .card-img img, .nft-card.empty .card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 32px 32px 0 0;
+      display: block;
+    }
+    .nft-card .card-img .question {
+      font-size: 96px;
+      color: #fff;
+      width: 100%;
+      text-align: center;
+    }
+    .nft-card .card-img.empty, .nft-card.empty .card-img.empty {
+      background: #ebebea;
+      color: #bbb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      position: relative;
+    }
+    .nft-card .card-img.empty::after, .nft-card.empty .card-img.empty::after {
+      content: none;
+    }
+    .empty-diagonal {
+      position: absolute;
+      left: 50%; top: 50%;
+      width: 80%; height: 80%;
+      z-index: 1;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+    .empty-diagonal-line {
+      width: 100%; height: 100%;
+      display: block;
+      border-radius: inherit;
+      margin: 0 auto;
+    }
+    .empty-text {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      color: #bbb;
+      font-size: 48px;
+      font-weight: bold;
+      user-select: none;
+      pointer-events: none;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 8px #fff, 0 0 2px #ccc;
+      background: #ebebea;
+      padding: 6px 18px;
+      border-radius: 18px;
+      box-sizing: border-box;
+      opacity: 0.95;
+      text-transform: uppercase;
+    }
+    .nft-card .card-content, .nft-card.empty .card-content {
+      width: 100%;
+      background: #ebebea;
+      border-radius: 0 0 32px 32px;
+      padding: 10px 0 54px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 120px;
+      height: 120px;
+      position: relative;
+      box-sizing: border-box;
+    }
+    .nft-card .nft-name-wrapper {
+      position: relative;
+      text-align: center;
+      margin-bottom: 5px;
+    }
+    .nft-card .nft-rarity-wrapper {
+      position: relative;
+      text-align: center;
+      margin-bottom: 5px;
+      height: 24px;
+      min-height: 24px;
+      box-sizing: border-box;
+    }
+    .nft-card .nft-btn-wrapper {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      text-align: center;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+    .nft-card .nft-name {
+      font-size: 18px;
+      color: #231F20;
+      font-weight: 300;
+      margin-top: 5px;
+    }
+    .nft-card .nft-rarity {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+    .nft-card .nft-btn {
+      min-width: 180px;
+      height: 40px;
+      border-radius: 20px;
+      border: none;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nft-card .nft-btn.burn { background: #FF1744; color: #fff; }
+    .nft-card .nft-btn.reveal { background: #231F20; color: #fff; }
+    .nft-card .nft-btn.burn:hover { background: rgba(255, 23, 68, 0.8); }
+    .nft-card .nft-btn.reveal:hover { background: rgba(35, 31, 32, 0.8); }
+    .nft-card.legendary .card-img { background: #FF9800; }
+    .nft-card.epic .card-img { background: #C800FF; }
+    .nft-card.rare .card-img { background: #00BFFF; }
+    .nft-card.common .card-img { background: #00C853; }
+    .nft-card.legendary .nft-rarity { color: #FF9800; }
+    .nft-card.epic .nft-rarity { color: #C800FF; }
+    .nft-card.rare .nft-rarity { color: #00BFFF; }
+    .nft-card.common .nft-rarity { color: #00C853; }
+    @media (max-width: 1400px) {
+      .carousel-outer { width: 85vw; max-width: 85vw; padding: 0 32px; }
+      .nft-card, .nft-card.empty { width: 320px; height: 440px; }
+      .nft-card .card-img, .nft-card.empty .card-img { height: 320px; font-size: 64px; }
+      .empty-text { font-size: 32px; padding: 4px 12px; border-radius: 12px; }
+      .nft-card .card-content, .nft-card.empty .card-content { padding: 8px 0; min-height: 60px; }
+    }
+    @media (max-width: 900px) {
+      .carousel-outer { width: 85vw; max-width: 85vw; padding: 0 16px; }
+      .nft-card, .nft-card.empty { width: 320px; height: 440px; }
+      .nft-card .card-img, .nft-card.empty .card-img { height: 320px; font-size: 64px; }
+      .nft-card .card-content, .nft-card.empty .card-content { padding: 8px 0; min-height: 30px; }
+      .nft-card .nft-btn { min-width: 60px; height: 24px; font-size: 11px; border-radius: 10px; }
+      .empty-text { font-size: 14px; padding: 2px 6px; border-radius: 6px; }
+    }
+    /* ====== 弹窗样式 ====== */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: transparent;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-box {
+      background: #ebebea;
+      border: 1px solid #bbb;
+      border-radius: 20px;
+      min-width: 400px;
+      min-height: 160px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 0 0 0 0;
+      animation: fadeIn 0.2s;
+      box-sizing: border-box;
+      /* 居中显示 */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      position: fixed;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 24px;
+      height: 24px;
+      background: #231F20;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      z-index: 2;
+    }
+    .modal-close-x {
+      color: #fff;
+      font-size: 17px;
+      font-weight: bold;
+      line-height: 1;
+      pointer-events: none;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .modal-content {
+      width: 100%;
+      font-size: 12pt;
+      font-weight: 300;
+      color: #231F20;
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+      padding-top: 38px;
+      padding-bottom: 12px;
+      word-break: break-word;
+      line-height: 1.6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60px;
+    }
+    .modal-btns {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .modal-btn {
+      min-width: 90px;
+      height: 38px;
+      font-size: 16px;
+      font-weight: bold;
+      background: #ebebea;
+      color: #231F20;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .modal-btn.primary {
+      background: #231F20;
+      color: #fff;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-spinner {
+      width: 36px;
+      height: 36px;
+      border: 4px solid #bbb;
+      border-top: 4px solid #231F20;
+      border-radius: 50%;
+      animation: modal-spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes modal-spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div style="width:100vw;text-align:center;margin-top:32px;">
+    <button id="refreshBtn" style="font-size:18px;padding:8px 32px;border-radius:20px;background:#231F20;color:#fff;border:none;cursor:pointer;">Refresh</button>
+  </div>
+  <div class="carousel-outer">
+    <button class="carousel-arrow left" id="leftArrow">&#9664;</button>
+    <div class="carousel-container">
+      <div class="carousel-track" id="carouselTrack"></div>
+    </div>
+    <button class="carousel-arrow right" id="rightArrow">&#9654;</button>
+  </div>
+
+  <!-- 弹窗容器 -->
+  <div id="modalContainer" style="display:none;"></div>
+  <script>
+    // 稀有度与颜色映射
+    const RARITY_CLASS = {
+      legendary: 'legendary',
+      epic: 'epic',
+      rare: 'rare',
+      common: 'common'
+    };
+    const RARITY_LABEL = {
+      legendary: 'LEGENDARY',
+      epic: 'EPIC',
+      rare: 'RARE',
+      common: 'COMMON'
+    };
+
+    // ========== 合约与数据 =============
+    const contractAddress = "0x1208EB01d631E773f51a71a6c24Bf06f0FF41b2D";
+    const contractABI = [
+      "function balanceOf(address owner) public view returns (uint256)",
+      "function tokenURI(uint256 tokenId) public view returns (string)",
+      "function ownerOf(uint256 tokenId) public view returns (address)",
+      "function reveal(uint256 tokenId) public",
+      "function burn(uint256 tokenId) public",
+      "function defaultBaseURI() public view returns (string)",
+      "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
+    ];
+
+    // ========== 钱包与合约自动连接 =============
+    let userAccount = null;
+    let provider = null;
+    let signer = null;
+    let contract = null;
+    let defaultBaseURIOnChain = null;
+    let nfts = [];
+    let current = 0;
+    const MIN_CARDS = 5;
+    const CARD_WIDTH = 320; // px, 与样式保持一致
+    const CARD_GAP = 36; // px, 与样式保持一致
+    let isLoadingNFTs = false;
+    let isNFTsLoaded = false;
+
+    window.onload = async function() {
+      renderCarousel(); // 页面一加载就渲染 empty card
+      if (typeof window.ethereum === 'undefined') {
+        showModal('Please install MetaMask wallet extension');
+        return;
+      }
+      try {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        const accounts = await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        userAccount = await signer.getAddress();
+        contract = new ethers.Contract(contractAddress, contractABI, signer);
+        defaultBaseURIOnChain = await contract.defaultBaseURI();
+        await loadNFTs();
+        renderCarousel();
+      } catch (err) {
+        console.error('Wallet connection failed:', err);
+        showModal('Wallet connection failed');
+      }
+    };
+
+    async function loadNFTs() {
+      isNFTsLoaded = false;
+      nfts = [];
+      if (!contract || !userAccount) return;
+      try {
+        const balance = await contract.balanceOf(userAccount);
+        if (balance.eq(0)) { isNFTsLoaded = true; return; }
+        // 通过Transfer事件找tokenId
+        const transferFilter = contract.filters.Transfer(null, userAccount);
+        const events = await contract.queryFilter(transferFilter, 0, 'latest');
+        const potentialTokenIds = [...new Set(events.map(e => e.args.tokenId.toString()))];
+        for (const tokenId of potentialTokenIds.reverse()) { // 最新的在前
+          try {
+            const currentOwner = await contract.ownerOf(tokenId);
+            if (currentOwner.toLowerCase() !== userAccount.toLowerCase()) continue;
+            let tokenURI = '', revealed = false, meta = {}, rarity = 'common', image = '', name = '';
+            try {
+              tokenURI = await contract.tokenURI(tokenId);
+              function normalize(url) { return url ? url.replace(/\/+$/, '') : ''; }
+              const normTokenURI = normalize(tokenURI);
+              const normDefaultBase = normalize(defaultBaseURIOnChain);
+              revealed = !(tokenURI && tokenURI.includes('unrevealed.json'));
+            } catch (e) {
+              console.error(`获取TokenURI失败 for tokenId: ${tokenId}`, e);
+            }
+            if (tokenURI) {
+              const metadataUrl = tokenURI.startsWith('ipfs://') ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') : tokenURI;
+              try {
+                const response = await fetch(metadataUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const metadata = await response.json();
+                // 主图片
+                if (metadata.image) {
+                  image = metadata.image.startsWith('ipfs://') ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : metadata.image;
+                }
+                // 名称
+                if (metadata.name) {
+                  name = metadata.name;
+                }
+                // 稀有度
+                if (metadata.attributes && Array.isArray(metadata.attributes)) {
+                  const rarityAttr = metadata.attributes.find(a => a.trait_type && a.trait_type.toLowerCase() === 'rarity');
+                  if (rarityAttr && rarityAttr.value) {
+                    const val = rarityAttr.value.toLowerCase();
+                    if (RARITY_CLASS[val]) rarity = val;
+                  }
+                }
+              } catch(e) {
+                console.error(`Failed to fetch metadata from ${metadataUrl}`, e);
+              }
+            }
+            nfts.push({ tokenId, revealed, image, name, rarity });
+          } catch(e) {
+            console.log(`Skipping token ${tokenId} as ownerOf check failed (possibly burned).`);
+          }
+        }
+        isNFTsLoaded = true;
+      } catch (err) {
+        isNFTsLoaded = true;
+        console.error("Failed to load NFTs:", err);
+      }
+    }
+
+    // ========== 轮播渲染 =============
+    function renderCarousel() {
+      const track = document.getElementById('carouselTrack');
+      let displayNFTs = [];
+      if (!isNFTsLoaded) {
+        // 加载前始终显示5张empty
+        for (let i = 0; i < MIN_CARDS; i++) displayNFTs.push({empty: true});
+      } else {
+        displayNFTs = nfts.slice();
+        if (displayNFTs.length < MIN_CARDS) {
+          for (let i = displayNFTs.length; i < MIN_CARDS; i++) {
+            displayNFTs.push({empty: true});
+          }
+        }
+      }
+      track.innerHTML = '';
+      displayNFTs.forEach((nft, i) => {
+        let card;
+        if (nft && !nft.empty) {
+          card = createNFTCard(nft, false);
+        } else {
+          card = createEmptyCard(false);
+        }
+        track.appendChild(card);
+      });
+      setTimeout(() => {
+        const scrollTo = (CARD_WIDTH + CARD_GAP) * current;
+        track.scrollTo({ left: scrollTo, behavior: 'smooth' });
+      }, 0);
+      document.getElementById('leftArrow').disabled = current === 0;
+      document.getElementById('rightArrow').disabled = current >= displayNFTs.length - 4.5;
+    }
+
+    function createNFTCard(nft, isActive) {
+      const card = document.createElement('div');
+      card.className = `nft-card ${nft.revealed ? RARITY_CLASS[nft.rarity] : ''} ${isActive ? 'active' : ''}`;
+      // 卡片图片区
+      const imgDiv = document.createElement('div');
+      imgDiv.className = 'card-img';
+      if (nft.image) {
+        const img = document.createElement('img');
+        img.src = nft.image;
+        img.alt = nft.name || 'NFT';
+        imgDiv.appendChild(img);
+      } else {
+        const q = document.createElement('div');
+        q.className = 'question';
+        q.innerText = '?';
+        imgDiv.appendChild(q);
+      }
+      card.appendChild(imgDiv);
+      // 卡片内容区
+      const content = document.createElement('div');
+      content.className = 'card-content';
+      
+      // name
+      const nameWrapper = document.createElement('div');
+      nameWrapper.className = 'nft-name-wrapper';
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'nft-name';
+      nameDiv.innerText = nft.name || 'NFT Name';
+      nameWrapper.appendChild(nameDiv);
+      content.appendChild(nameWrapper);
+
+      // rarity
+      const rarityWrapper = document.createElement('div');
+      rarityWrapper.className = 'nft-rarity-wrapper';
+      if (nft.revealed) {
+        const rarityDiv = document.createElement('div');
+        rarityDiv.className = 'nft-rarity';
+        rarityDiv.innerText = RARITY_LABEL[nft.rarity] || 'COMMON';
+        rarityWrapper.appendChild(rarityDiv);
+      }
+      content.appendChild(rarityWrapper);
+
+      // 按钮
+      const btnWrapper = document.createElement('div');
+      btnWrapper.className = 'nft-btn-wrapper';
+      if (nft.revealed) {
+        const burnBtn = document.createElement('button');
+        burnBtn.className = 'nft-btn burn';
+        burnBtn.innerText = 'BURNR';
+        burnBtn.onclick = () => burnNFT(nft.tokenId);
+        btnWrapper.appendChild(burnBtn);
+      } else {
+        const revealBtn = document.createElement('button');
+        revealBtn.className = 'nft-btn reveal';
+        revealBtn.innerText = 'REVEAL';
+        revealBtn.onclick = () => revealNFT(nft.tokenId);
+        btnWrapper.appendChild(revealBtn);
+      }
+      content.appendChild(btnWrapper);
+      
+      card.appendChild(content);
+      return card;
+    }
+    function createEmptyCard(isActive) {
+      const card = document.createElement('div');
+      card.className = `nft-card empty${isActive ? ' active' : ''}`;
+      card.style.position = 'relative';
+      // 斜线（覆盖整个卡片）
+      const diagonal = document.createElement('div');
+      diagonal.className = 'empty-diagonal';
+      diagonal.innerHTML = `<svg class=\"empty-diagonal-line\" width=\"100%\" height=\"100%\" viewBox=\"0 0 100 100\" preserveAspectRatio=\"none\"><line x1=\"10\" y1=\"10\" x2=\"90\" y2=\"90\" stroke=\"#ccc\" stroke-width=\"0.5\" stroke-linecap=\"round\"/></svg>`;
+      card.appendChild(diagonal);
+      // EMPTY文字
+      const text = document.createElement('div');
+      text.className = 'empty-text';
+      text.innerText = 'EMPTY';
+      card.appendChild(text);
+      // 下面是原有的卡片结构
+      const imgDiv = document.createElement('div');
+      imgDiv.className = 'card-img empty';
+      card.appendChild(imgDiv);
+      const content = document.createElement('div');
+      content.className = 'card-content';
+      card.appendChild(content);
+      return card;
+    }
+
+    // ========== 轮播交互 =============
+    document.getElementById('leftArrow').onclick = function() {
+      if (current > 0) {
+        current--;
+        renderCarousel();
+      }
+    };
+    document.getElementById('rightArrow').onclick = function() {
+      const displayNFTsLen = Math.max(nfts.length, MIN_CARDS);
+      if (current < displayNFTsLen - 4.5) {
+        current++;
+        renderCarousel();
+      }
+    };
+
+    // ========== 合约交互 =============
+    async function burnNFT(tokenId) {
+      if (!contract) return;
+      showModal(`Are you sure you want to burn Token ID: ${tokenId}?<br>This action is irreversible!`, {
+        buttons: [
+          { text: 'Cancel', onClick: null },
+          { text: 'Confirm', primary: true, onClick: async () => {
+            try {
+              const tx = await contract.burn(tokenId);
+              await tx.wait();
+              showModal(`Token ID: ${tokenId} burned successfully!<br>Tx: ${tx.hash}`);
+              await loadNFTs();
+              renderCarousel();
+            } catch (err) {
+              if (err && (err.code === 4001 || (err.message && err.message.toLowerCase().includes('user rejected')))) {
+                showModal('Transaction was cancelled by user.');
+              } else {
+                showModal('Burn failed. Please try again.');
+              }
+            }
+          }}
+        ]
+      });
+    }
+    async function revealNFT(tokenId) {
+      if (!contract) return;
+      showModal('Waiting for wallet confirmation...');
+      try {
+        const tx = await contract.reveal(tokenId);
+        showModal('<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">'
+          + '<div class="modal-spinner"></div>'
+          + '<div style="margin-top:8px;">Revealing...</div></div>');
+        await tx.wait();
+        showModal('Reveal successful!');
+        await loadNFTs();
+        renderCarousel();
+      } catch (err) {
+        if (err && (err.code === 4001 || (err.message && err.message.toLowerCase().includes('user rejected')))) {
+          showModal('Transaction was cancelled by user.');
+        } else {
+          showModal('Reveal failed. Please try again.');
+        }
+      }
+    }
+
+    document.getElementById('refreshBtn').onclick = async function() {
+      this.disabled = true;
+      try {
+        await loadNFTs();
+        renderCarousel();
+      } catch (e) {
+        showModal('Failed to refresh NFTs');
+      }
+      this.disabled = false;
+    };
+
+    // ===================== 弹窗函数 =====================
+    function showModal(message, options) {
+      const modalContainer = document.getElementById('modalContainer');
+      let buttonsHtml = '';
+      if (options && Array.isArray(options.buttons)) {
+        buttonsHtml = '<div class="modal-btns">' +
+          options.buttons.map((btn, i) => `<button class="modal-btn${btn.primary ? ' primary' : ''}" onclick="window._modalBtnClick(${i})">${btn.text}</button>`).join('') +
+          '</div>';
+        window._modalBtnClick = function(idx) {
+          hideModal();
+          if (options.buttons[idx].onClick) options.buttons[idx].onClick();
+        };
+      }
+      modalContainer.innerHTML = `
+        <div class="modal-overlay">
+          <div class="modal-box">
+            <button class="modal-close" onclick="hideModal()"><span class="modal-close-x">&#10005;</span></button>
+            <div class="modal-content">${message}</div>
+            ${buttonsHtml}
+          </div>
+        </div>
+      `;
+      modalContainer.style.display = 'block';
+    }
+    function hideModal() {
+      document.getElementById('modalContainer').style.display = 'none';
+      window._modalBtnClick = null;
+    }
+    window.hideModal = hideModal;
+  </script>
+</body>
+</html> 
