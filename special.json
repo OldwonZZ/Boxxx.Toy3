@@ -1,0 +1,11 @@
+{
+  "name": "Toy3 Special",
+  "description": "Special mint fot 2 boxes",
+  "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/special.png",
+  "attributes": [
+    {
+      "trait_type": "Rarity",
+      "value": "Special"
+    }
+  ]
+}
