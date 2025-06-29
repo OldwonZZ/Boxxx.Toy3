@@ -1,7 +1,7 @@
 {
   "name": "Toy3 Mocablock Toy #72",
   "description": "An example nonfungible token.",
-  "image": "/assets/legendry.png",
+  "image": "assets/legendry.png",
   "attributes": [
     {
       "trait_type": "Rarity",
