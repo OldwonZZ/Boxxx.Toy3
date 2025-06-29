@@ -168,6 +168,7 @@
       justify-content: flex-start;
       position: relative;
       box-sizing: border-box;
+      padding: 0 0 8px 0;
     }
     .nft-card .nft-name-wrapper {
       position: relative;
@@ -176,11 +177,26 @@
     }
     .nft-card .nft-rarity-wrapper {
       position: relative;
-      text-align: center;
+      text-align: right;
       margin-bottom: 5px;
       height: 24px;
       min-height: 24px;
       box-sizing: border-box;
+      display: flex;
+      align-items: right;
+      justify-content: flex-end;
+      gap: 0;
+      margin-top: 0;
+      padding-top: 0;
+      width: 100%;
+      background-color: #353435;
+      background-image: repeating-linear-gradient(
+        135deg,
+        transparent,
+        transparent 2px,
+        #5c5c5c86 1px,
+        #2a2a2a 3px
+      );
     }
     .nft-card .nft-btn-wrapper {
       position: absolute;
@@ -202,10 +218,36 @@
       margin-top: 5px;
     }
     .nft-card .nft-rarity {
-      font-size: 16px;
+      font-size: 12px;
       font-weight: bold;
-      margin-bottom: 5px;
+
       text-transform: uppercase;
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 0;
+      color: white;
+      box-shadow: none;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .nft-card.legendary .nft-rarity { 
+      background: #FF9800; 
+      border-color: rgba(255, 152, 0, 0.5);
+      box-shadow: none;
+    }
+    .nft-card.epic .nft-rarity { 
+      background: #C800FF; 
+      border-color: rgba(200, 0, 255, 0.5);
+      box-shadow: none;
+    }
+    .nft-card.rare .nft-rarity { 
+      background: #00BFFF; 
+      border-color: rgba(0, 191, 255, 0.5);
+      box-shadow: none;
+    }
+    .nft-card.common .nft-rarity { 
+      background: #00C853; 
+      border-color: rgba(0, 200, 83, 0.5);
+      box-shadow: none;
     }
     .nft-card .nft-btn {
       min-width: 180px;
@@ -243,10 +285,6 @@
     .nft-card.epic .card-img { background: #C800FF; }
     .nft-card.rare .card-img { background: #00BFFF; }
     .nft-card.common .card-img { background: #00C853; }
-    .nft-card.legendary .nft-rarity { color: #FF9800; }
-    .nft-card.epic .nft-rarity { color: #C800FF; }
-    .nft-card.rare .nft-rarity { color: #00BFFF; }
-    .nft-card.common .nft-rarity { color: #00C853; }
     
     /* Physical标签样式 */
     .nft-card .physical-tag {
@@ -256,10 +294,10 @@
       font-size: 12px;
       font-weight: bold;
       padding: 4px 8px;
-      border-radius: 12px;
-      margin-left: 8px;
+      border-radius: 0;
+      margin-left: 0;
       text-transform: uppercase;
-      box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+      box-shadow: none;
       border: 1px solid rgba(255, 215, 0, 0.5);
     }
     
@@ -267,7 +305,7 @@
       .nft-card .physical-tag {
         font-size: 10px;
         padding: 2px 6px;
-        margin-left: 4px;
+        margin-left: 0;
       }
     }
     @media (max-width: 1400px) {
@@ -275,13 +313,13 @@
       .nft-card, .nft-card.empty { width: 240px; height: 340px; }
       .nft-card .card-img, .nft-card.empty .card-img { height: 180px; font-size: 48px; }
       .empty-text { font-size: 24px; padding: 4px 12px; border-radius: 12px; }
-      .nft-card .card-content, .nft-card.empty .card-content { padding: 8px 0; min-height: 60px; }
+      .nft-card .card-content, .nft-card.empty .card-content { padding: 0 0 8px 0; min-height: 60px; }
     }
     @media (max-width: 900px) {
       .carousel-outer { width: 85vw; max-width: 85vw; padding: 0 16px; }
       .nft-card, .nft-card.empty { width: 180px; height: 260px; }
       .nft-card .card-img, .nft-card.empty .card-img { height: 120px; font-size: 32px; }
-      .nft-card .card-content, .nft-card.empty .card-content { padding: 8px 0; min-height: 30px; }
+      .nft-card .card-content, .nft-card.empty .card-content { padding: 0 0 8px 0; min-height: 30px; }
       .nft-card .nft-btn { min-width: 60px; height: 24px; font-size: 11px; border-radius: 10px; }
       .empty-text { font-size: 14px; padding: 2px 6px; border-radius: 6px; }
     }
@@ -1138,6 +1176,17 @@
       transform: translateY(-1px);
       box-shadow: 0 3px 6px rgba(255, 215, 0, 0.4);
     }
+    @media (max-width: 900px) {
+      .nft-card .nft-rarity {
+        font-size: 10px;
+        padding: 2px 6px;
+      }
+      .nft-card .physical-tag {
+        font-size: 10px;
+        padding: 2px 6px;
+        margin-left: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1735,15 +1784,6 @@
       const content = document.createElement('div');
       content.className = 'card-content';
       
-      // name
-      const nameWrapper = document.createElement('div');
-      nameWrapper.className = 'nft-name-wrapper';
-      const nameDiv = document.createElement('div');
-      nameDiv.className = 'nft-name';
-      nameDiv.innerText = nft.name || 'NFT Name';
-      nameWrapper.appendChild(nameDiv);
-      content.appendChild(nameWrapper);
-
       // rarity
       const rarityWrapper = document.createElement('div');
       rarityWrapper.className = 'nft-rarity-wrapper';
@@ -1762,6 +1802,15 @@
         }
       }
       content.appendChild(rarityWrapper);
+
+      // name
+      const nameWrapper = document.createElement('div');
+      nameWrapper.className = 'nft-name-wrapper';
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'nft-name';
+      nameDiv.innerText = nft.name || 'NFT Name';
+      nameWrapper.appendChild(nameDiv);
+      content.appendChild(nameWrapper);
 
       // 按钮
       const btnWrapper = document.createElement('div');
