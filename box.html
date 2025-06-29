@@ -224,8 +224,16 @@
       background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); 
       color: #fff; 
     }
-    .nft-card .nft-btn.burn:hover { background: rgba(255, 23, 68, 0.8); }
-    .nft-card .nft-btn.reveal:hover { background: rgba(35, 31, 32, 0.8); }
+    .nft-card .nft-btn.burn:hover { 
+      background: rgba(255, 23, 68, 0.8); 
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(255, 23, 68, 0.4);
+    }
+    .nft-card .nft-btn.reveal:hover { 
+      background: rgba(35, 31, 32, 0.8); 
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(35, 31, 32, 0.4);
+    }
     .nft-card .nft-btn.special-burn:hover { 
       background: linear-gradient(135deg, #B8860B 0%, #8B6914 100%); 
       transform: translateY(-1px);
@@ -239,6 +247,29 @@
     .nft-card.epic .nft-rarity { color: #C800FF; }
     .nft-card.rare .nft-rarity { color: #00BFFF; }
     .nft-card.common .nft-rarity { color: #00C853; }
+    
+    /* Physical标签样式 */
+    .nft-card .physical-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+      color: #000;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 12px;
+      margin-left: 8px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+      border: 1px solid rgba(255, 215, 0, 0.5);
+    }
+    
+    @media (max-width: 900px) {
+      .nft-card .physical-tag {
+        font-size: 10px;
+        padding: 2px 6px;
+        margin-left: 4px;
+      }
+    }
     @media (max-width: 1400px) {
       .carousel-outer { width: 85vw; max-width: 85vw; padding: 0 32px; }
       .nft-card, .nft-card.empty { width: 240px; height: 340px; }
@@ -1071,6 +1102,42 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    
+    /* Physical卡片的特殊按钮样式 */
+    .nft-card .nft-btn-wrapper.physical {
+      justify-content: center;
+      padding: 0 10px;
+    }
+    
+    .nft-card .nft-btn.toylize {
+      min-width: 180px;
+      height: 40px;
+      border-radius: 20px;
+      border: none;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+      color: #000;
+      box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+      border: 1px solid rgba(255, 215, 0, 0.5);
+    }
+    
+    @media (max-width: 900px) {
+      .nft-card .nft-btn.toylize {
+        min-width: 50px;
+        height: 24px;
+        font-size: 11px;
+        border-radius: 10px;
+      }
+    }
+    
+    .nft-card .nft-btn.toylize:hover {
+      background: linear-gradient(135deg, #FFA500 0%, #FF8C00 50%, #FF6B00 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(255, 215, 0, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -1522,7 +1589,7 @@
         
         // 并行获取所有metadata
         const metadataPromises = tokenURIs.map(async ({ tokenId, tokenURI }) => {
-          let revealed = false, meta = {}, rarity = 'common', image = '', name = '', type = 'revealed';
+          let revealed = false, meta = {}, rarity = 'common', image = '', name = '', type = 'revealed', physical = false;
           
           // 直接用tokenURI字符串判断类型
           if (tokenURI && tokenURI.includes('special.json')) {
@@ -1548,6 +1615,10 @@
               if (metadata.name) {
                 name = metadata.name;
               }
+              // 读取physical字段
+              if (metadata.physical !== undefined) {
+                physical = metadata.physical;
+              }
               if (metadata.attributes && Array.isArray(metadata.attributes)) {
                 const rarityAttr = metadata.attributes.find(a => a.trait_type && a.trait_type.toLowerCase() === 'rarity');
                 if (rarityAttr && rarityAttr.value) {
@@ -1560,7 +1631,7 @@
             }
           }
           
-          return { tokenId, revealed, image, name, rarity, type };
+          return { tokenId, revealed, image, name, rarity, type, physical };
         });
         
         nfts = await Promise.all(metadataPromises);
@@ -1681,6 +1752,14 @@
         rarityDiv.className = 'nft-rarity';
         rarityDiv.innerText = RARITY_LABEL[nft.rarity] || 'COMMON';
         rarityWrapper.appendChild(rarityDiv);
+        
+        // 如果NFT为revealed状态且physical为true，显示Physical标签
+        if (nft.physical) {
+          const physicalTag = document.createElement('span');
+          physicalTag.className = 'physical-tag';
+          physicalTag.innerText = 'Physical';
+          rarityWrapper.appendChild(physicalTag);
+        }
       }
       content.appendChild(rarityWrapper);
 
@@ -1694,11 +1773,23 @@
         specialBtn.onclick = () => specialBurn(nft.tokenId);
         btnWrapper.appendChild(specialBtn);
       } else if (nft.revealed) {
-        const burnBtn = document.createElement('button');
-        burnBtn.className = 'nft-btn burn';
-        burnBtn.innerText = 'BURN';
-        burnBtn.onclick = () => burnNFT(nft.tokenId);
-        btnWrapper.appendChild(burnBtn);
+        // 如果是physical卡片，使用特殊的按钮布局
+        if (nft.physical) {
+          btnWrapper.className = 'nft-btn-wrapper physical';
+          
+          const toylizeBtn = document.createElement('button');
+          toylizeBtn.className = 'nft-btn toylize';
+          toylizeBtn.innerText = 'TOYLIZE';
+          toylizeBtn.onclick = () => toylizeNFT(nft.tokenId);
+          btnWrapper.appendChild(toylizeBtn);
+        } else {
+          // 非physical卡片，使用原有布局
+          const burnBtn = document.createElement('button');
+          burnBtn.className = 'nft-btn burn';
+          burnBtn.innerText = 'BURN';
+          burnBtn.onclick = () => burnNFT(nft.tokenId);
+          btnWrapper.appendChild(burnBtn);
+        }
       } else {
         const revealBtn = document.createElement('button');
         revealBtn.className = 'nft-btn reveal';
@@ -1873,6 +1964,11 @@
           showModal('Special Burn failed. Please try again.');
         }
       }
+    }
+
+    async function toylizeNFT(tokenId) {
+      if (!contract) return;
+      showModal(`Toylize function is not yet implemented.<br>This feature will be available soon!`);
     }
 
     function setRefreshLoadedUI() {
