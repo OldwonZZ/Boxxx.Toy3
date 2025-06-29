@@ -239,11 +239,13 @@
       background: #4d8da0; 
     }
     .nft-card .nft-btn {
+      font-family: 'Barlow Condensed', Arial, sans-serif;
+      font-style: italic;
+      font-size: 22px;
       min-width: 180px;
       height: 40px;
       border-radius: 20px;
       border: none;
-      font-size: 18px;
       font-weight: bold;
       margin-bottom: 5px;
       cursor: pointer;
@@ -251,9 +253,23 @@
     }
     .nft-card .nft-btn.burn { background: #231F20; color: #fff; }
     .nft-card .nft-btn.reveal { background: #231F20; color: #fff; }
-    .nft-card .nft-btn.special-burn { 
-      background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); 
-      color: #fff; 
+    .nft-card .nft-btn.special-burn {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
+      color: #000;
+      min-width: 180px;
+      height: 40px;
+      border-radius: 20px;
+      border: none;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 2px 4px rgba(255, 215, 0, 0.3);
+    }
+    .nft-card .nft-btn.special-burn:hover {
+      background: linear-gradient(135deg, #FFA500 0%, #FF8C00 50%, #FF6B00 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px rgba(255, 215, 0, 0.4);
     }
     .nft-card .nft-btn.burn:hover {
       background: #111013;
@@ -264,11 +280,6 @@
       background: rgba(35, 31, 32, 0.8); 
       transform: translateY(-1px);
       box-shadow: 0 3px 6px rgba(35, 31, 32, 0.4);
-    }
-    .nft-card .nft-btn.special-burn:hover { 
-      background: linear-gradient(135deg, #B8860B 0%, #8B6914 100%); 
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
     }
     .nft-card.legendary .card-img { background: #e18701; }
     .nft-card.epic .card-img { background: #9e08c7; }
@@ -1684,7 +1695,23 @@
       if (!isNFTsLoaded) {
         for (let i = 0; i < MIN_CARDS; i++) displayNFTs.push({empty: true});
       } else {
-        displayNFTs = nfts.slice();
+        // 新增排序逻辑
+        const rarityOrder = { legendary: 0, epic: 1, rare: 2, common: 3 };
+        displayNFTs = nfts.slice().sort((a, b) => {
+          // Special > unreveal > revealed
+          const typeOrder = { special: 0, unreveal: 1, revealed: 2 };
+          const aType = typeOrder[a.type] !== undefined ? typeOrder[a.type] : 3;
+          const bType = typeOrder[b.type] !== undefined ? typeOrder[b.type] : 3;
+          if (aType !== bType) return aType - bType;
+          // revealed内部按稀有度排序
+          if (aType === 2 && bType === 2) {
+            const aRarity = rarityOrder[a.rarity] !== undefined ? rarityOrder[a.rarity] : 99;
+            const bRarity = rarityOrder[b.rarity] !== undefined ? rarityOrder[b.rarity] : 99;
+            if (aRarity !== bRarity) return aRarity - bRarity;
+          }
+          // 其他情况按tokenId升序
+          return (a.tokenId || 0) - (b.tokenId || 0);
+        });
         // 在最后一张NFT后面额外加两张空白卡片
         for (let i = 0; i < 2; i++) displayNFTs.push({empty: true});
         if (displayNFTs.length < MIN_CARDS) {
@@ -1804,7 +1831,7 @@
       if (nft.type === 'special') {
         const specialBtn = document.createElement('button');
         specialBtn.className = 'nft-btn special-burn';
-        specialBtn.innerText = 'SPECIAL BURN';
+        specialBtn.innerText = 'GET 2 BoXXX';
         specialBtn.onclick = () => specialBurn(nft.tokenId);
         btnWrapper.appendChild(specialBtn);
       } else if (nft.revealed) {
