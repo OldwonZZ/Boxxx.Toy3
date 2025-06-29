@@ -1,11 +1,12 @@
 {
-  "name": "Toy3 Mocablock Toy #277",
-  "description": "An example nonfungible token.",
-  "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/epic.png",
+  "name": "MocaBlockToy #277",
+  "description": "Moca Block Toy",
+  "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/Rare_3.png",
+  "physical": true,
   "attributes": [
     {
       "trait_type": "Rarity",
-      "value": "epic"
+      "value": "Rare"
     }
   ]
 }
