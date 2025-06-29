@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>NFT Contract Configuration</title>
+  <!-- 引入 ethers.js 库（用于与以太坊合约交互） -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" type="application/javascript"></script>
+  <style>
+    body { 
+      font-family: 'Arial', sans-serif; 
+      padding: 20px; 
+      background: #f5f5f5;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { 
+      color: #333; 
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    button { 
+      font-size: 16px; 
+      padding: 12px 24px; 
+      margin: 10px 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    #connectBtn {
+      background: #4CAF50;
+      color: white;
+    }
+    #connectBtn:hover {
+      background: #45a049;
+    }
+    .action-btn {
+      background: #2196F3;
+      color: white;
+    }
+    .action-btn:hover {
+      background: #1976D2;
+    }
+    .action-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    #account { 
+      margin: 20px 0; 
+      font-weight: bold;
+      padding: 10px;
+      background: #e8f5e8;
+      border-radius: 5px;
+      border-left: 4px solid #4CAF50;
+    }
+    .owner-section { 
+      margin-top: 30px; 
+      padding: 20px; 
+      border: 2px solid #4CAF50; 
+      border-radius: 10px;
+      background: #f9fff9;
+    }
+    .owner-section h2 { 
+      margin-top: 0; 
+      color: #2E7D32;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .input-group {
+      margin: 20px 0;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #333;
+    }
+    .input-group input { 
+      width: 100%; 
+      padding: 12px; 
+      font-size: 14px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    .input-group input:focus {
+      outline: none;
+      border-color: #2196F3;
+      box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+    }
+    #ownerStatus { 
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .status-info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    .access-denied {
+      text-align: center;
+      padding: 40px;
+      color: #721c24;
+      background: #f8d7da;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .chain-warning {
+      background: #fff3cd;
+      color: #856404;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ffeaa7;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 NFT Contract Configuration</h1>
+    
+    <!-- 钱包连接按钮和当前账户显示区域 -->
+    <button id="connectBtn">🔗 Connect Wallet</button>
+    <div id="account"></div>
+    <div id="chainWarning" class="chain-warning" style="display: none;">
+      ⚠️ Please switch to Sepolia testnet to access contract configuration.
+    </div>
+
+    <!-- 访问被拒绝提示 -->
+    <div id="accessDenied" class="access-denied" style="display: none;">
+      <h2>🚫 Access Denied</h2>
+      <p>This configuration page is only accessible to the contract owner.</p>
+      <p>Current wallet: <span id="currentWallet"></span></p>
+      <p>Contract owner: <span id="contractOwner"></span></p>
+    </div>
+
+    <!-- 合约所有者专属设置板块（仅合约Owner可见） -->
+    <div id="ownerSection" class="owner-section" style="display: none;">
+      <h2>👑 Owner Settings</h2>
+      
+      <div class="input-group">
+        <label for="baseURIInput">Base URI (for unrevealed metadata):</label>
+        <input type="text" id="baseURIInput" placeholder="ipfs://cid_for_unrevealed/">
+        <button id="setBaseURIBtn" class="action-btn">Set Base URI</button>
+      </div>
+      
+      <div class="input-group">
+        <label for="ipfsBaseURIInput">IPFS Base URI (for revealed metadata):</label>
+        <input type="text" id="ipfsBaseURIInput" placeholder="ipfs://cid_for_revealed/">
+        <button id="setIpfsBaseURIBtn" class="action-btn">Set IPFS Base URI</button>
+      </div>
+      
+      <div id="ownerStatus"></div>
+    </div>
+  </div>
+
+  <script>
+    // ===================== 变量和DOM元素获取 =====================
+    const connectBtn = document.getElementById('connectBtn');
+    const accountDiv = document.getElementById('account');
+    const ownerSection = document.getElementById('ownerSection');
+    const accessDenied = document.getElementById('accessDenied');
+    const chainWarning = document.getElementById('chainWarning');
+    const currentWallet = document.getElementById('currentWallet');
+    const contractOwner = document.getElementById('contractOwner');
+    const setBaseURIBtn = document.getElementById('setBaseURIBtn');
+    const setIpfsBaseURIBtn = document.getElementById('setIpfsBaseURIBtn');
+    const baseURIInput = document.getElementById('baseURIInput');
+    const ipfsBaseURIInput = document.getElementById('ipfsBaseURIInput');
+    const ownerStatus = document.getElementById('ownerStatus');
+
+    let userAccount = null;
+    let provider = null;
+    let signer = null;
+    let contract = null;
+    let contractOwnerAddress = null;
+
+    // ===================== 合约地址和ABI =====================
+    const contractAddress = "0x0a1d2dee15cc7548a433203992417037afe91c99"; // 更新为正确的合约地址
+    const SEPOLIA_CHAIN_ID = '0xaa36a7'; // Sepolia chain ID
+    
+    const contractABI = [
+        "function owner() view returns (address)",
+        "function setBaseURI(string calldata defaultBaseURI_) external",
+        "function setIpfsBaseURI(string calldata ipfsBaseURI_) external",
+        "function burnBatch(uint256[] tokenIds) external"
+    ];
+
+    // ===================== 钱包连接逻辑 =====================
+    connectBtn.onclick = async function() {
+      if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask wallet extension first');
+        return;
+      }
+      
+      try {
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = '<span class="loading"></span>Connecting...';
+        
+        // 检查网络
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (chainId !== SEPOLIA_CHAIN_ID) {
+          chainWarning.style.display = 'block';
+          try {
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: SEPOLIA_CHAIN_ID }]
+            });
+            chainWarning.style.display = 'none';
+          } catch (switchError) {
+            if (switchError.code === 4902) {
+              // 添加Sepolia网络
+              await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                  chainId: SEPOLIA_CHAIN_ID,
+                  chainName: 'Sepolia Testnet',
+                  nativeCurrency: {
+                    name: 'SepoliaETH',
+                    symbol: 'ETH',
+                    decimals: 18
+                  },
+                  rpcUrls: ['https://rpc.sepolia.org'],
+                  blockExplorerUrls: ['https://sepolia.etherscan.io/']
+                }]
+              });
+              chainWarning.style.display = 'none';
+            }
+          }
+        }
+
+        // 创建provider和signer
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        const accounts = await provider.send("eth_requestAccounts", []);
+        signer = provider.getSigner();
+        userAccount = await signer.getAddress();
+        
+        // 显示已连接账户
+        accountDiv.innerHTML = '✅ Connected: ' + userAccount;
+        connectBtn.style.display = 'none';
+
+        // 创建合约实例
+        contract = new ethers.Contract(contractAddress, contractABI, signer);
+        
+        // 检查是否为合约Owner
+        await checkOwner();
+        
+      } catch (err) {
+        console.error('Connect wallet failed:', err);
+        if (err.code === 4001) {
+          alert('User rejected connection request');
+        } else {
+          alert('Failed to connect wallet: ' + err.message);
+        }
+        connectBtn.disabled = false;
+        connectBtn.innerHTML = '🔗 Connect Wallet';
+      }
+    };
+
+    // ===================== 检查是否为合约Owner =====================
+    async function checkOwner() {
+      try {
+        ownerStatus.innerHTML = '<span class="loading"></span>Checking owner permissions...';
+        ownerStatus.className = 'status-info';
+        
+        contractOwnerAddress = await contract.owner();
+        
+        if (userAccount.toLowerCase() === contractOwnerAddress.toLowerCase()) {
+          // 是Owner，显示配置界面
+          ownerSection.style.display = 'block';
+          accessDenied.style.display = 'none';
+          ownerStatus.innerHTML = '✅ Owner access granted. You can now configure the contract.';
+          ownerStatus.className = 'status-success';
+        } else {
+          // 不是Owner，显示拒绝访问
+          ownerSection.style.display = 'none';
+          accessDenied.style.display = 'block';
+          currentWallet.textContent = userAccount;
+          contractOwner.textContent = contractOwnerAddress;
+          ownerStatus.innerHTML = '❌ Access denied. Only contract owner can access this page.';
+          ownerStatus.className = 'status-error';
+        }
+      } catch (error) {
+        console.error('Failed to check owner:', error);
+        ownerStatus.innerHTML = '❌ Failed to check owner permissions: ' + error.message;
+        ownerStatus.className = 'status-error';
+      }
+    }
+
+    // ===================== 设置Base URI功能 =====================
+    setBaseURIBtn.onclick = async function() {
+      const uri = baseURIInput.value.trim();
+      if (!uri) {
+        alert("Please enter Base URI");
+        return;
+      }
+      
+      setBaseURIBtn.disabled = true;
+      setBaseURIBtn.innerHTML = '<span class="loading"></span>Setting Base URI...';
+      ownerStatus.innerHTML = '<span class="loading"></span>Setting Base URI...';
+      ownerStatus.className = 'status-info';
+      
+      try {
+        const tx = await contract.setBaseURI(uri);
+        ownerStatus.innerHTML = '<span class="loading"></span>Waiting for transaction confirmation...';
+        
+        await tx.wait();
+        
+        ownerStatus.innerHTML = '✅ Base URI set successfully!<br>Transaction: ' + tx.hash;
+        ownerStatus.className = 'status-success';
+        baseURIInput.value = '';
+      } catch (error) {
+        console.error('Failed to set Base URI:', error);
+        if (error.code === 4001) {
+          ownerStatus.innerHTML = '❌ Transaction was cancelled by user.';
+        } else {
+          ownerStatus.innerHTML = '❌ Failed to set Base URI: ' + error.message;
+        }
+        ownerStatus.className = 'status-error';
+      } finally {
+        setBaseURIBtn.disabled = false;
+        setBaseURIBtn.innerHTML = 'Set Base URI';
+      }
+    };
+
+    // ===================== 设置IPFS Base URI功能 =====================
+    setIpfsBaseURIBtn.onclick = async function() {
+      const uri = ipfsBaseURIInput.value.trim();
+      if (!uri) {
+        alert("Please enter IPFS Base URI");
+        return;
+      }
+      
+      setIpfsBaseURIBtn.disabled = true;
+      setIpfsBaseURIBtn.innerHTML = '<span class="loading"></span>Setting IPFS Base URI...';
+      ownerStatus.innerHTML = '<span class="loading"></span>Setting IPFS Base URI...';
+      ownerStatus.className = 'status-info';
+      
+      try {
+        const tx = await contract.setIpfsBaseURI(uri);
+        ownerStatus.innerHTML = '<span class="loading"></span>Waiting for transaction confirmation...';
+        
+        await tx.wait();
+        
+        ownerStatus.innerHTML = '✅ IPFS Base URI set successfully!<br>Transaction: ' + tx.hash;
+        ownerStatus.className = 'status-success';
+        ipfsBaseURIInput.value = '';
+      } catch (error) {
+        console.error('Failed to set IPFS Base URI:', error);
+        if (error.code === 4001) {
+          ownerStatus.innerHTML = '❌ Transaction was cancelled by user.';
+        } else {
+          ownerStatus.innerHTML = '❌ Failed to set IPFS Base URI: ' + error.message;
+        }
+        ownerStatus.className = 'status-error';
+      } finally {
+        setIpfsBaseURIBtn.disabled = false;
+        setIpfsBaseURIBtn.innerHTML = 'Set IPFS Base URI';
+      }
+    };
+
+    // ===================== 网络切换监听 =====================
+    if (typeof window.ethereum !== 'undefined') {
+      window.ethereum.on('chainChanged', (chainId) => {
+        if (chainId !== SEPOLIA_CHAIN_ID) {
+          chainWarning.style.display = 'block';
+          ownerSection.style.display = 'none';
+          accessDenied.style.display = 'none';
+        } else {
+          chainWarning.style.display = 'none';
+          if (contract) {
+            checkOwner();
+          }
+        }
+      });
+
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length === 0) {
+          // 用户断开连接
+          location.reload();
+        } else {
+          // 用户切换账户
+          userAccount = accounts[0];
+          accountDiv.innerHTML = '✅ Connected: ' + userAccount;
+          if (contract) {
+            checkOwner();
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html> 
