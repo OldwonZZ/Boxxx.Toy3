@@ -1194,6 +1194,17 @@
       background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
       color: #000;
     }
+    .burned-count-display {
+      display: inline-block;
+      font-size: 24px;
+      font-family: 'Barlow Condensed', Arial, sans-serif;
+      font-style: italic;
+      font-weight: bold;
+      letter-spacing: 1px;
+      margin-left: 0px;
+      color: #FF00F9;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -1243,7 +1254,7 @@
     <div class="center-container" style="align-items:flex-start;width:85vw;max-width:85vw;margin:0 auto 24px auto;">
       <div class="mint-row">
         <div class="mint-progress" id="mintProgress">--/888</div>
-        <span id="burnedCountDisplay" style="display:inline-block;font-size:54px;font-family:'Barlow Condensed',Arial,sans-serif;font-style:italic;font-weight:bold;letter-spacing:1px;margin-left:8px;color:#231F20;vertical-align:middle;"></span>
+        <span id="burnedCountDisplay" class="burned-count-display"></span>
         <div class="mint-slider-container">
           <div class="slider-labels">
             <span>1</span>
