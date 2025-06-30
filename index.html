@@ -276,6 +276,7 @@
             justify-content: center;
             gap: 18px;
             margin-top: 18px;
+            margin-bottom: 24px;
         }
         .modal-btn {
             min-width: 90px;
@@ -288,6 +289,8 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.2s;
+            font-family: 'Barlow Condensed', Arial, sans-serif;
+            font-style: italic;
         }
         .modal-btn.primary {
             background: #231F20;
@@ -902,7 +905,7 @@
                 await tx.wait();
                 showModal('Mint successful!', {
                     buttons: [
-                        { text: 'OK', primary: true, onClick: () => {} }
+                        { text: 'Check My BoXXX', primary: true, onClick: () => { window.location.href = 'box.html'; } }
                     ]
                 });
                 await updateMintStatus();
