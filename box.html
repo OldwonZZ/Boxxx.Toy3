@@ -1255,7 +1255,7 @@
           </div>
         </div>
         <div class="mint-btn-group">
-          <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row">0.002<small>ETH</small></span><span class="perbox-row">Per Box</span></span></button>
+          <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row" id="mintPriceEth">--<small>ETH</small></span><span class="perbox-row">Per Box</span></span></button>
         </div>
       </div>
       <div id="mintStatus"></div>
@@ -1513,6 +1513,7 @@
         window.userAccount = null;
         nfts = [];
         isNFTsLoaded = false;
+        mintPriceEth.innerHTML = '--<small>ETH</small>';
     }
 
     // 断开连接
@@ -2305,16 +2306,22 @@
       updateSliderBox();
       // 合约进度
       async function updateMintStatus() {
-        if (!window.contract) return;
+        if (!window.contract) {
+          document.getElementById('mintProgress').innerText = '--/888';
+          mintPriceEth.innerHTML = '--<small>ETH</small>';
+          return;
+        }
         try {
           const total = await window.contract.totalSupply();
           const max = await window.contract.MAX_SUPPLY();
-          mintProgress.innerText = `${total}/${max}`;
-          mintBtn.disabled = false;
-          mintStatus.innerText = '';
+          document.getElementById('mintProgress').innerText = `${total}/${max}`;
+          // 动态获取mint价格
+          const price = await window.contract.PRICE();
+          const ethPrice = ethers.utils.formatEther(price);
+          mintPriceEth.innerHTML = `${ethPrice}<small>ETH</small>`;
         } catch (e) {
-          mintProgress.innerText = '--/888';
-          mintStatus.innerText = 'Failed to fetch mint status.';
+          document.getElementById('mintProgress').innerText = '--/888';
+          mintPriceEth.innerHTML = '--<small>ETH</small>';
         }
       }
       // mint按钮逻辑
