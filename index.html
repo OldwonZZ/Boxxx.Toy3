@@ -64,22 +64,33 @@
             height: 10%;
         }
         .mint-row {
+            margin-top: 20px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0px;
-            margin-bottom: 32px;
+            justify-content: flex-start;
         }
         .mint-progress {
+            display: flex;
+            align-items: flex-end;
             font-size: 54px;
             font-family: 'Barlow Condensed', Arial, sans-serif;
             font-style: italic;
             font-weight: bold;
             letter-spacing: 1px;
-            margin-right: 10px;
+            margin-right: 0px;
             min-width: 110px;
             text-align: center;
             color: #231F20;
+        }
+        .burned-count-display {
+            display: flex;
+            font-size: 24px;
+            font-family: 'Barlow Condensed', Arial, sans-serif;
+            font-style: italic;
+            font-weight: bold;
+            color: #FF00F9;
+            align-items: flex-end;
+            padding-bottom: 6px;
+            margin-left:-5px;
         }
         .mint-controls {
             display: flex;
@@ -532,6 +543,7 @@
     <div class="center-container">
         <div class="mint-row">
             <div class="mint-progress" id="mintProgress">--/888</div>
+            <span id="burnedCountDisplay" class="burned-count-display"></span>
             <div class="mint-slider-container">
                 <div class="slider-labels">
                     <span>1</span>
@@ -622,7 +634,8 @@
             "function saleIsActive() public view returns (bool)",
             "function PRICE() public view returns (uint256)",
             "function MAX_SUPPLY() public view returns (uint256)",
-            "function totalSupply() public view returns (uint256)"
+            "function totalSupply() public view returns (uint256)",
+            "function burnedCount() external view returns (uint256)"
         ];
 
         // ===================== 钱包连接功能 =====================
@@ -813,6 +826,7 @@
             if (!contract) {
                 mintProgress.innerText = '--/888';
                 mintPriceEth.innerHTML = '--<small>Eth</small>';
+                document.getElementById('burnedCountDisplay').innerText = '';
                 return;
             }
             try {
@@ -826,9 +840,21 @@
                 const price = await contract.PRICE();
                 const ethPrice = ethers.utils.formatEther(price);
                 mintPriceEth.innerHTML = `${ethPrice}<small>Eth</small>`;
+                // 获取burnedCount
+                let burned = 0;
+                try {
+                    burned = await contract.burnedCount();
+                } catch (e) {}
+                const burnedSpan = document.getElementById('burnedCountDisplay');
+                if (burned && burned.toString() !== '0') {
+                    burnedSpan.innerHTML = `（${burned} BURNED）`;
+                } else {
+                    burnedSpan.innerHTML = '';
+                }
             } catch (e) {
                 mintProgress.innerText = '--/888';
                 mintPriceEth.innerHTML = '--<small>Eth</small>';
+                document.getElementById('burnedCountDisplay').innerText = '';
                 showModal('Failed to fetch mint status. Please check your wallet connection and network.', {
                     buttons: [
                         { text: 'OK', primary: true, onClick: () => {
