@@ -223,8 +223,6 @@
     const specialMintTo = document.getElementById('specialMintTo');
     const specialMintBtn = document.getElementById('specialMintBtn');
     const specialMintStatus = document.getElementById('specialMintStatus');
-    const connectBtn = document.getElementById('connectBtn');
-    const accountDiv = document.getElementById('account');
     const baseURIInput = document.getElementById('baseURIInput');
     const setBaseURIBtn = document.getElementById('setBaseURIBtn');
     const ipfsBaseURIInput = document.getElementById('ipfsBaseURIInput');
@@ -234,7 +232,6 @@
     const setSpecialURIBtn = document.getElementById('setSpecialURIBtn');
     const specialURIStatus = document.getElementById('specialURIStatus');
 
-    let userAccount = null; // 当前用户钱包地址
     let provider = null;    // ethers.js provider
     let signer = null;      // ethers.js signer
     let contract = null;    // 合约实例
@@ -475,12 +472,47 @@
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 signer = provider.getSigner();
                 contract = new ethers.Contract(contractAddress, contractABI, signer);
+                // 新增：钱包已连接时自动刷新所有功能区
+                await afterWalletConnected();
             }
             updateWalletUI();
         } catch (e) {
             // 忽略
         }
     });
+
+    // 新增：钱包连接成功后自动刷新所有功能区
+    async function afterWalletConnected() {
+        // 检查 owner
+        isOwner = false;
+        try {
+            const ownerAddr = await contract.owner();
+            if (walletState.account && ownerAddr && walletState.account.toLowerCase() === ownerAddr.toLowerCase()) {
+                isOwner = true;
+                adminSection.style.display = 'block';
+                updateSaleStatus();
+                // 加载合约余额
+                loadContractBalance();
+                // 查询当前阈值
+                try {
+                    const threshold = await contract.batchBurnThreshold();
+                    batchBurnThresholdInput.value = threshold.toString();
+                    batchBurnThresholdStatus.innerText = `当前阈值: ${threshold}`;
+                } catch (e) {
+                    batchBurnThresholdStatus.innerText = '查询阈值失败';
+                }
+            } else {
+                adminSection.style.display = 'none';
+            }
+        } catch (e) {
+            adminSection.style.display = 'none';
+        }
+        // mint区、NFT区等刷新
+        saleIsActive = await contract.saleIsActive();
+        updateMintUI();
+        defaultBaseURIOnChain = await contract.defaultBaseURI();
+        setTimeout(loadMyNFTs, 1000);
+    }
 
     // ===================== 管理员开关逻辑 =====================
     async function updateSaleStatus() {
@@ -513,7 +545,7 @@
     }
 
     mintBtn.onclick = async function() {
-      if (!contract || !userAccount) {
+      if (!contract || !walletState.account) {
         alert('connect wallet first');
         return;
       }
@@ -560,21 +592,21 @@
     // ===================== 新增：我的NFT查看和Reveal功能（已修复） =====================
     // 扫描当前钱包所有NFT
     async function loadMyNFTs() {
-      if (!contract || !userAccount) {
+      if (!contract || !walletState.account) {
         nftListDiv.innerText = 'Please connect your wallet first';
         return;
       }
       selectedNFTs.clear();
       try {
         nftListDiv.innerHTML = '<h4>Scanning your NFTs... (this may take a while)</h4>';
-        const balance = await contract.balanceOf(userAccount);
+        const balance = await contract.balanceOf(walletState.account);
         if (balance.eq(0)) {
             nftListDiv.innerText = 'You do not own any NFTs.';
             return;
         }
         
         // 1. 通过扫描Transfer事件，找到所有曾经转给你的tokenId
-        const transferFilter = contract.filters.Transfer(null, userAccount);
+        const transferFilter = contract.filters.Transfer(null, walletState.account);
         const events = await contract.queryFilter(transferFilter, 0, 'latest');
         const potentialTokenIds = [...new Set(events.map(event => event.args.tokenId.toString()))];
 
@@ -590,7 +622,7 @@
         for (const tokenId of potentialTokenIds.reverse()) { // 从最新的开始显示
             try {
                 const currentOwner = await contract.ownerOf(tokenId);
-                if (currentOwner.toLowerCase() !== userAccount.toLowerCase()) {
+                if (currentOwner.toLowerCase() !== walletState.account.toLowerCase()) {
                     continue; // 如果已转出，则跳过
                 }
                 ownedCount++;
@@ -749,7 +781,7 @@
 
     // Batch Burn 按钮事件
     batchBurnBtn.onclick = async function() {
-      if (!contract || !userAccount) return;
+      if (!contract || !walletState.account) return;
       if (selectedNFTs.size < 10) {
         alert('Please select at least 10 NFTs to batch burn.');
         return;
@@ -791,7 +823,7 @@
 
     // Batch Reveal 按钮事件
     batchRevealBtn.onclick = async function() {
-      if (!contract || !userAccount) return;
+      if (!contract || !walletState.account) return;
       // 只允许选择未揭示NFT
       const unrevealedTokenIds = [];
       document.querySelectorAll('.nft-checkbox').forEach(cb => {
@@ -828,7 +860,7 @@
       if (!isOwner) return;
       const count = parseInt(specialMintCount.value);
       let to = specialMintTo.value.trim();
-      if (!to) to = userAccount;
+      if (!to) to = walletState.account;
       if (isNaN(count) || count < 1) {
         specialMintStatus.innerText = '请输入有效数量';
         return;
@@ -866,48 +898,6 @@
         loadMyNFTs();
       }
     }
-
-    connectBtn.onclick = async function() {
-      if (typeof window.ethereum === 'undefined') {
-        alert('请先安装 MetaMask 钱包插件');
-        return;
-      }
-      try {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        const accounts = await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        userAccount = await signer.getAddress();
-        accountDiv.innerText = 'Connected: ' + userAccount;
-        connectBtn.style.display = 'none';
-        contract = new ethers.Contract(contractAddress, contractABI, signer);
-        // 检查是否为Owner
-        const ownerAddr = await contract.owner();
-        if (userAccount.toLowerCase() === ownerAddr.toLowerCase()) {
-          isOwner = true;
-          adminSection.style.display = 'block';
-          updateSaleStatus();
-        }
-        saleIsActive = await contract.saleIsActive();
-        updateMintUI();
-        defaultBaseURIOnChain = await contract.defaultBaseURI();
-        setTimeout(loadMyNFTs, 1000);
-        // 查询owner区块内容
-        if (isOwner) {
-          try {
-            const threshold = await contract.batchBurnThreshold();
-            batchBurnThresholdInput.value = threshold.toString();
-            batchBurnThresholdStatus.innerText = `当前阈值: ${threshold}`;
-          } catch (e) {
-            console.log('获取批量燃烧阈值失败:', e);
-          }
-          // 加载合约余额
-          loadContractBalance();
-        }
-      } catch (err) {
-        console.error('Connect wallet failed:', err);
-        alert('User rejected connection request');
-      }
-    };
 
     setBaseURIBtn.onclick = async function() {
       const uri = baseURIInput.value;
@@ -962,7 +952,7 @@
 
     // 新增合约余额和提款功能
     async function loadContractBalance() {
-      if (!contract || !userAccount) {
+      if (!contract || !walletState.account) {
         document.getElementById('contractBalance').innerText = '加载合约余额失败，请先连接钱包';
         return;
       }
@@ -977,7 +967,7 @@
     }
 
     async function withdrawAllFunds() {
-      if (!contract || !userAccount) {
+      if (!contract || !walletState.account) {
         alert('请先连接钱包');
         return;
       }
@@ -996,7 +986,7 @@
       
       let confirmMessage = '确定要提取所有资金吗？此操作是不可逆的！';
       if (withdrawToAddress) {
-        confirmMessage = `确定要提取所有资金吗？\n\n注意：由于合约限制，资金将先提取到您的钱包地址(${userAccount})，然后您需要手动转账到目标地址(${withdrawToAddress})。\n\n此操作是不可逆的！`;
+        confirmMessage = `确定要提取所有资金吗？\n\n注意：由于合约限制，资金将先提取到您的钱包地址(${walletState.account})，然后您需要手动转账到目标地址(${withdrawToAddress})。\n\n此操作是不可逆的！`;
       }
       
       if (!confirm(confirmMessage)) {
@@ -1012,7 +1002,7 @@
         
         let successMessage = `✅ 提取资金成功！Tx: ${tx.hash}`;
         if (withdrawToAddress) {
-          successMessage += `\n\n下一步：请手动将资金从您的钱包(${userAccount})转账到目标地址(${withdrawToAddress})`;
+          successMessage += `\n\n下一步：请手动将资金从您的钱包(${walletState.account})转账到目标地址(${withdrawToAddress})`;
         }
         
         withdrawStatus.innerHTML = successMessage.replace(/\n/g, '<br>');
