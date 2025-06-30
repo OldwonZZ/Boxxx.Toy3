@@ -1196,6 +1196,7 @@
     }
     .burned-count-display {
       display: inline-block;
+      height: 100%;
       font-size: 24px;
       font-family: 'Barlow Condensed', Arial, sans-serif;
       font-style: italic;
@@ -1256,7 +1257,8 @@
     <!-- Mint Row from mint.html -->
     <div class="center-container" style="align-items:flex-start;width:85vw;max-width:85vw;margin:0 auto 24px auto;">
       <div class="mint-row">
-        <div class="mint-progress" id="mintProgress">--/888<span id="burnedCountDisplay" class="burned-count-display"></span></div>
+        <div class="mint-progress" id="mintProgress">--/888</div>
+        <span id="burnedCountDisplay" class="burned-count-display"></span>
         <div class="mint-slider-container">
           <div class="slider-labels">
             <span>1</span>
