@@ -88,12 +88,6 @@
         <strong>合约余额：</strong><span id="contractBalance">加载中...</span>
         <button id="refreshBalanceBtn" style="margin-left: 10px; background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">刷新</button>
       </div>
-      <div style="margin-bottom: 15px;">
-        <label for="withdrawToAddress">提取到地址：</label><br>
-        <input type="text" id="withdrawToAddress" placeholder="留空则提取到当前钱包地址" style="width: 400px; padding: 5px; margin-top: 5px;">
-        <button id="copyAddressBtn" style="margin-left: 5px; background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">复制当前地址</button>
-        <div style="font-size: 12px; color: #666; margin-top: 2px;">注意：合约只能提取到所有者地址，如需提取到其他地址，请先提取到当前地址再转账</div>
-      </div>
       <button id="withdrawBtn" style="background: #FF00F9; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">提取所有资金</button>
       <div id="withdrawStatus" style="margin-top: 10px;"></div>
     </div>
@@ -736,37 +730,16 @@
         alert('只有合约所有者才能提取资金');
         return;
       }
-      
-      const withdrawToAddress = document.getElementById('withdrawToAddress').value.trim();
-      
-      // 验证地址格式
-      if (withdrawToAddress && !ethers.utils.isAddress(withdrawToAddress)) {
-        alert('请输入有效的以太坊地址');
+      if (!confirm('确定要提取所有资金吗？此操作是不可逆的！')) {
         return;
       }
-      
-      let confirmMessage = '确定要提取所有资金吗？此操作是不可逆的！';
-      if (withdrawToAddress) {
-        confirmMessage = `确定要提取所有资金吗？\n\n注意：由于合约限制，资金将先提取到您的钱包地址(${userAccount})，然后您需要手动转账到目标地址(${withdrawToAddress})。\n\n此操作是不可逆的！`;
-      }
-      
-      if (!confirm(confirmMessage)) {
-        return;
-      }
-      
       try {
         const withdrawStatus = document.getElementById('withdrawStatus');
         withdrawStatus.innerText = '正在提取资金...';
         const tx = await contract.withdraw();
         withdrawStatus.innerText = '等待交易确认...';
         await tx.wait();
-        
-        let successMessage = `✅ 提取资金成功！Tx: ${tx.hash}`;
-        if (withdrawToAddress) {
-          successMessage += `\n\n下一步：请手动将资金从您的钱包(${userAccount})转账到目标地址(${withdrawToAddress})`;
-        }
-        
-        withdrawStatus.innerHTML = successMessage.replace(/\n/g, '<br>');
+        withdrawStatus.innerText = `✅ 提取资金成功！Tx: ${tx.hash}`;
         loadContractBalance(); // 刷新余额显示
       } catch (err) {
         console.error('提取资金失败:', err);
@@ -781,17 +754,6 @@
 
     document.getElementById('withdrawBtn').onclick = withdrawAllFunds;
     document.getElementById('refreshBalanceBtn').onclick = loadContractBalance;
-
-    // 新增复制地址功能
-    document.getElementById('copyAddressBtn').onclick = function() {
-      const address = document.getElementById('withdrawToAddress').value.trim();
-      if (address) {
-        navigator.clipboard.writeText(address);
-        alert('地址已复制到剪贴板');
-      } else {
-        alert('请先输入提取地址');
-      }
-    };
   </script>
 </body>
 </html> 
