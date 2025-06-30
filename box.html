@@ -1243,6 +1243,7 @@
     <div class="center-container" style="align-items:flex-start;width:85vw;max-width:85vw;margin:0 auto 24px auto;">
       <div class="mint-row">
         <div class="mint-progress" id="mintProgress">--/888</div>
+        <span id="burnedCountDisplay" style="display:inline-block;font-size:54px;font-family:'Barlow Condensed',Arial,sans-serif;font-style:italic;font-weight:bold;letter-spacing:1px;margin-left:8px;color:#231F20;vertical-align:middle;"></span>
         <div class="mint-slider-container">
           <div class="slider-labels">
             <span>1</span>
@@ -1301,7 +1302,9 @@
       "function saleIsActive() public view returns (bool)",
       "function PRICE() public view returns (uint256)",
       "function MAX_SUPPLY() public view returns (uint256)",
-      "function totalSupply() public view returns (uint256)"
+      "function totalSupply() public view returns (uint256)",
+      "function batchBurnAndReset(uint256[] calldata tokenIds) external",
+      "function burnedCount() external view returns (uint256)"
     ];
 
     // ========== 钱包与合约自动连接 =============
@@ -2239,7 +2242,7 @@
       btn.disabled = true;
       showModal('Waiting for wallet confirmation...');
       try {
-        const tx = await contract.burnBatch(tokenIds);
+        const tx = await contract.batchBurnAndReset(tokenIds);
         showModal('<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">'
           + '<div class="modal-spinner"></div>'
           + '<div style="margin-top:8px;">Batch Burning...</div></div>');
@@ -2288,6 +2291,7 @@
         if (!window.contract) {
           document.getElementById('mintProgress').innerText = '--/888';
           mintPriceEth.innerHTML = '--<small>ETH</small>';
+          document.getElementById('burnedCountDisplay').innerText = '';
           return;
         }
         try {
@@ -2298,9 +2302,21 @@
           const price = await window.contract.PRICE();
           const ethPrice = ethers.utils.formatEther(price);
           mintPriceEth.innerHTML = `${ethPrice}<small>ETH</small>`;
+          // 获取burnedCount
+          let burned = 0;
+          try {
+            burned = await window.contract.burnedCount();
+          } catch (e) {}
+          const burnedSpan = document.getElementById('burnedCountDisplay');
+          if (burned && burned.toString() !== '0') {
+            burnedSpan.innerHTML = `（${burned} BURNED）`;
+          } else {
+            burnedSpan.innerHTML = '';
+          }
         } catch (e) {
           document.getElementById('mintProgress').innerText = '--/888';
           mintPriceEth.innerHTML = '--<small>ETH</small>';
+          document.getElementById('burnedCountDisplay').innerText = '';
         }
       }
       // mint按钮逻辑
