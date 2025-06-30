@@ -371,7 +371,7 @@
   </div>
 
   <!-- Mint NFT 功能区 -->
-  <div class="mint-section">
+  <div class="mint-section" style="display: none;">
     <label for="mintCount">Mint Amount (max 10 per time, unlimited per wallet):</label><br>
     <input type="number" id="mintCount" min="1" max="10" value="1">
     <button id="mintBtn">Mint</button>
@@ -379,7 +379,7 @@
   </div>
 
   <!-- 我的NFT查看和Reveal功能区 -->
-  <div class="mint-section" id="myNFTSection" style="margin-top:40px;">
+  <div class="mint-section" id="myNFTSection" style="margin-top:40px; display: none;">
     <h2>My NFTs</h2>
     <button id="refreshNFTBtn" style="margin-bottom:10px;">Refresh</button>
     <button id="batchRevealBtn" style="margin-bottom:10px; margin-left:10px;">Batch Reveal</button>
@@ -616,14 +616,25 @@
     function updateWalletUI() {
         const infoEl = document.getElementById('walletInfo');
         const buttonEl = document.getElementById('connectMetaMaskButton');
+        const adminSection = document.getElementById('adminSection');
+        const mintSection = document.querySelector('.mint-section');
+        const myNFTSection = document.getElementById('myNFTSection');
+        
         infoEl.className = '';
         if (walletState.isConnected) {
             const chainStatus = walletState.isCorrectChain ? '' : `Wrong Chain (${walletState.chainId})`;
             infoEl.textContent = `${formatAddress(walletState.account)}`;
             if (walletState.isCorrectChain) {
                 infoEl.classList.add('connected');
+                // 钱包正确连接时显示功能区域
+                if (mintSection) mintSection.style.display = 'block';
+                if (myNFTSection) myNFTSection.style.display = 'block';
             } else {
                 infoEl.classList.add('wrong-chain');
+                // 网络错误时隐藏功能区域
+                if (mintSection) mintSection.style.display = 'none';
+                if (myNFTSection) myNFTSection.style.display = 'none';
+                if (adminSection) adminSection.style.display = 'none';
             }
             buttonEl.textContent = 'Disconnect';
             buttonEl.classList.add('disconnect');
@@ -631,6 +642,10 @@
         } else {
             infoEl.textContent = 'Not connected';
             infoEl.classList.add('disconnected');
+            // 钱包未连接时隐藏所有功能区域
+            if (mintSection) mintSection.style.display = 'none';
+            if (myNFTSection) myNFTSection.style.display = 'none';
+            if (adminSection) adminSection.style.display = 'none';
             buttonEl.textContent = 'Connect MetaMask';
             buttonEl.classList.remove('disconnect');
             buttonEl.onclick = connectMetaMask;
@@ -642,7 +657,7 @@
 
     // 页面加载时自动检查钱包连接状态
     window.addEventListener('DOMContentLoaded', async function() {
-        updateWalletUI();
+        updateWalletUI(); // 确保初始状态正确
         if (typeof window.ethereum === 'undefined') return;
         try {
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
@@ -695,6 +710,9 @@
         updateMintUI();
         defaultBaseURIOnChain = await contract.defaultBaseURI();
         setTimeout(loadMyNFTs, 1000);
+        
+        // 确保功能区域显示
+        updateWalletUI();
     }
 
     // ===================== 管理员开关逻辑 =====================
