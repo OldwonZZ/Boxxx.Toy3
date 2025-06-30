@@ -1,7 +1,7 @@
 // 合约配置文件
 const CONFIG = {
     // 合约地址
-    contractAddress: "0x0AfFeEBa265D4F8e20e0dD8ac53c75076e6103b4",
+    contractAddress: "0x7290469ae92e4eab071688295c175c7fec26f1d0",
     
     // 网络配置
     network: "sepolia",
