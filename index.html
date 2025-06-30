@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" type="application/javascript"></script>
+    <script src="config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700&display=swap" rel="stylesheet">
     <style>
         html, body {
@@ -276,10 +277,11 @@
             justify-content: center;
             gap: 18px;
             margin-top: 18px;
+            margin-bottom: 24px;
         }
         .modal-btn {
-            min-width: 90px;
-            height: 38px;
+            min-width: 130px;
+            height: 40px;
             font-size: 16px;
             font-weight: bold;
             background: #ebebea;
@@ -288,9 +290,16 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background 0.2s;
+            font-family: 'Barlow Condensed', Arial, sans-serif;
+            font-style: italic;
         }
         .modal-btn.primary {
             background: #231F20;
+            color: #fff;
+        }
+        .modal-btn.primary:hover,
+        .modal-btn:hover {
+            background: #FF00F9;
             color: #fff;
         }
         @keyframes fadeIn {
@@ -585,18 +594,8 @@
         const MAX_MINT = 10;
 
         // ===================== 钱包连接状态管理 =====================
-        // Sepolia链配置（Chain ID: 11155111）
-        const SEPOLIA_CHAIN = {
-            chainId: '0xaa36a7',
-            chainName: 'Sepolia Testnet',
-            nativeCurrency: {
-                name: 'SepoliaETH',
-                symbol: 'ETH',
-                decimals: 18
-            },
-            rpcUrls: ['https://rpc.sepolia.org'],
-            blockExplorerUrls: ['https://sepolia.etherscan.io/']
-        };
+        // 使用配置文件中的网络设置
+        const CHAIN_CONFIG = CONFIG.CHAIN_CONFIG;
         
         // 全局状态
         const walletState = {
@@ -614,7 +613,7 @@
         let saleIsActive = false;
 
         // ===================== 合约地址和ABI =====================
-        const contractAddress = "0x0a1d2dee15cc7548a433203992417037afe91c99";
+        const contractAddress = CONFIG.contractAddress;
         const contractABI = [
             "function mint(uint256 count) public payable",
             "function saleIsActive() public view returns (bool)",
@@ -630,17 +629,17 @@
                 const currentChainId = await window.ethereum.request({ 
                     method: 'eth_chainId' 
                 });
-                if (currentChainId !== SEPOLIA_CHAIN.chainId) {
+                if (currentChainId !== CHAIN_CONFIG.chainId) {
                     try {
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: SEPOLIA_CHAIN.chainId }]
+                            params: [{ chainId: CHAIN_CONFIG.chainId }]
                         });
                     } catch (switchError) {
                         if (switchError.code === 4902) {
                             await window.ethereum.request({
                                 method: 'wallet_addEthereumChain',
-                                params: [SEPOLIA_CHAIN]
+                                params: [CHAIN_CONFIG]
                             });
                         } else {
                             throw switchError;
@@ -684,7 +683,7 @@
                 walletState.isConnected = true;
                 walletState.account = accounts[0];
                 walletState.chainId = chainId;
-                walletState.isCorrectChain = chainId === SEPOLIA_CHAIN.chainId;
+                walletState.isCorrectChain = chainId === CHAIN_CONFIG.chainId;
                 
                 // 初始化ethers.js
                 provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -717,7 +716,7 @@
             };
             const chainChanged = (chainId) => {
                 walletState.chainId = chainId;
-                walletState.isCorrectChain = chainId === SEPOLIA_CHAIN.chainId;
+                walletState.isCorrectChain = chainId === CHAIN_CONFIG.chainId;
                 updateUI();
                 updateMintStatus();
             };
@@ -774,13 +773,7 @@
             return address ? `${address.slice(0, 6)}...${address.slice(-4)}` : '';
         }
         function formatChainId(chainId) {
-            const chains = {
-                '0x1': 'Ethereum',
-                '0x38': 'BNB Chain',
-                '0x89': 'Polygon',
-                '0xaa36a7': 'Sepolia'
-            };
-            return chains[chainId] || chainId;
+            return CONFIG.CHAIN_NAMES[chainId] || chainId;
         }
         function resetWalletState() {
             walletState.isConnected = false;
@@ -902,7 +895,7 @@
                 await tx.wait();
                 showModal('Mint successful!', {
                     buttons: [
-                        { text: 'OK', primary: true, onClick: () => {} }
+                        { text: 'Check My BoXXX', primary: true, onClick: () => { window.location.href = 'box.html'; } }
                     ]
                 });
                 await updateMintStatus();
@@ -947,7 +940,7 @@
                     walletState.isConnected = true;
                     walletState.account = accounts[0];
                     walletState.chainId = chainId;
-                    walletState.isCorrectChain = chainId === SEPOLIA_CHAIN.chainId;
+                    walletState.isCorrectChain = chainId === CHAIN_CONFIG.chainId;
                     
                     // 初始化ethers.js
                     provider = new ethers.providers.Web3Provider(window.ethereum);
