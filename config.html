@@ -6,41 +6,135 @@
   <!-- 引入 ethers.js 库（用于与以太坊合约交互） -->
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js" type="application/javascript"></script>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    button { font-size: 16px; padding: 10px; margin-top: 5px; }
-    #account { margin-top: 20px; font-weight: bold; }
+    body { 
+      font-family: 'Arial', sans-serif; 
+      padding: 20px; 
+      background-color: #f5f5f5;
+      color: #333;
+      margin: 0;
+    }
+    
+    h1 {
+      color: #000;
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: 300;
+    }
+    
+    button { 
+      font-size: 14px; 
+      padding: 8px 16px; 
+      margin: 5px 5px 5px 0;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+    
+    button:hover {
+      background-color: #333;
+      transform: translateY(-1px);
+    }
+    
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    input[type="text"], input[type="number"] {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #fff;
+      color: #333;
+      transition: border-color 0.3s ease;
+    }
+    
+    input[type="text"]:focus, input[type="number"]:focus {
+      outline: none;
+      border-color: #000;
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+    }
+    
+    label {
+      font-weight: 600;
+      color: #000;
+      margin-bottom: 5px;
+      display: inline-block;
+    }
+    
+    #mintStatus, #adminStatus, #ownerStatus, #specialURIStatus, #specialMintStatus, #batchBurnThresholdStatus, #withdrawStatus { 
+      margin-top: 10px; 
+      color: #666;
+      font-size: 14px;
+    }
+    
     .mint-section {
       margin-top: 30px;
-      padding: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
       width: 100%;
       box-sizing: border-box;
       margin-left: auto;
       margin-right: auto;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .mint-section input { width: 60px; padding: 6px; font-size: 14px; }
-    .mint-section label { font-weight: bold; }
-    #mintStatus { margin-top: 15px; color: #1a73e8; }
+    
+    .mint-section input { 
+      width: 80px; 
+      padding: 8px; 
+      font-size: 14px; 
+      margin-right: 10px;
+    }
+    
+    .mint-section label { 
+      font-weight: 600; 
+      margin-right: 10px;
+    }
+    
     .admin-section {
       margin-top: 30px;
-      padding: 15px;
-      border: 1px solid #f90;
-      border-radius: 5px;
+      padding: 20px;
+      border: 1px solid #000;
+      border-radius: 8px;
       width: 100%; 
       box-sizing: border-box;
-      background: #fffbe6;
+      background: #fff;
       margin-left: auto;
       margin-right: auto;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    #adminStatus { margin-top: 10px; color: #d35400; }
+    
+    .admin-section h3 {
+      color: #000;
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    
+    .admin-section hr {
+      border: none;
+      border-top: 1px solid #eee;
+      margin: 20px 0;
+    }
+    
     /* ====== 钱包连接样式 ====== */
     .wallet-container {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 5px;
-        padding: 10px 20px;
+        padding: 15px 20px;
+        background-color: #fff;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 30px;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
@@ -51,15 +145,15 @@
         align-items: center;
     }
     .logo {
-        height: 100px;
-        width: 100px;
-        object-fit: fit;
+        height: 60px;
+        width: 60px;
+        object-fit: contain;
     }
     .wallet-controls {
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        gap: 5px;
+        gap: 10px;
     }
     #walletInfo {
         -webkit-user-select: none;
@@ -68,51 +162,146 @@
         user-select: none;
         justify-content: flex-end;
         align-content: center;
-        font-family: 'Roboto', sans-serif;
-        font-size: 16px;
-        font-weight: 200;
-        padding: 8px 5px;
-        min-width: 200px;
-        height: 40px;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 8px 12px;
+        min-width: 180px;
+        height: 36px;
         display: flex;
         align-items: center;
         text-align: right;
-        transition: all 0.5s ease;
+        transition: all 0.3s ease;
+        border-radius: 4px;
     }
     #connectMetaMaskButton {
-        width: 180px;
-        height: 40px;
-        background-color: #231F20;
+        width: 160px;
+        height: 36px;
+        background-color: #000;
         border: none;
-        font-family: 'Barlow Condensed','Roboto', sans-serif;
+        font-family: 'Arial', sans-serif;
         font-size: 14px;
-        font-weight: 200;
+        font-weight: 500;
         color: white;
-        letter-spacing: 0.5px;
         cursor: pointer;
-        transition: all 0.6s ease;
+        transition: all 0.3s ease;
+        border-radius: 4px;
     }
     #connectMetaMaskButton:hover {
-        background-color: #FF00FF;
+        background-color: #333;
+        transform: translateY(-1px);
     }
     #connectMetaMaskButton:active {
-        background-color: #383838;
+        background-color: #000;
+        transform: translateY(0);
     }
     #connectMetaMaskButton.disconnect {
-        background-color: #231F20;
+        background-color: #000;
         cursor: pointer;
     }
     #connectMetaMaskButton.disconnect:hover {
-        background-color: #FF00FF; 
+        background-color: #333; 
     }
     #walletInfo.connected {
-        color: #231F20;
+        color: #000;
+        background-color: #f0f0f0;
     }
     #walletInfo.wrong-chain {
-        color: #E65100;
+        color: #d32f2f;
+        background-color: #ffebee;
     }
     #walletInfo.disconnected {
-        color: #A3A3A3;
+        color: #666;
+        background-color: #f5f5f5;
+    }
+    
+    /* 特殊按钮样式 */
+    #refreshBalanceBtn {
+        background-color: #000;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        margin-left: 10px;
+    }
+    
+    #refreshBalanceBtn:hover {
+        background-color: #333;
+    }
+    
+    #withdrawBtn {
+        background-color: #000;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    #withdrawBtn:hover {
+        background-color: #333;
+    }
+    
+    #batchRevealBtn {
+        background-color: #000;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    #batchRevealBtn:hover {
+        background-color: #333;
+    }
+    
+    #batchBurnBtn {
+        background-color: #000;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    
+    #batchBurnBtn:hover {
+        background-color: #333;
+    }
+    
+    /* NFT 卡片样式 */
+    .nft-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 10px 0;
+        background-color: #fff;
+        transition: all 0.3s ease;
+    }
+    
+    .nft-card:hover {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .nft-card.selected {
+        border-color: #000;
+        background-color: #f8f8f8;
+    }
+    
+    .nft-card input[type="checkbox"] {
+        margin-right: 10px;
+    }
+    
+    .nft-card button {
+        margin: 5px 5px 5px 0;
+        font-size: 12px;
+        padding: 6px 12px;
     }
   </style>
 </head>
@@ -135,7 +324,7 @@
     <label>Mint Toggle:</label>
     <button id="toggleSaleBtn">Loading...</button>
     <div id="adminStatus"></div>
-    <hr style="margin:16px 0;">
+    <hr>
     <div>
       <label for="baseURIInput">Base URI (for unrevealed metadata):</label><br>
       <input type="text" id="baseURIInput" placeholder="ipfs://cid_for_unrevealed/">
@@ -153,14 +342,14 @@
       <span id="specialURIStatus"></span>
     </div>
     <div id="ownerStatus" style="margin-top: 10px;"></div>
-    <hr style="margin:16px 0;">
+    <hr>
     <div>
       <label for="batchBurnThresholdInput">Batch Burn 最低数量：</label>
       <input type="number" id="batchBurnThresholdInput" min="1" value="10" style="width:80px;">
       <button id="setBatchBurnThresholdBtn">设置</button>
       <span id="batchBurnThresholdStatus"></span>
     </div>
-    <hr style="margin:16px 0;">
+    <hr>
     <div>
       <label for="specialMintCount">Special Mint 数量：</label>
       <input type="number" id="specialMintCount" min="1" value="1" style="width:80px;">
@@ -168,21 +357,15 @@
       <input type="text" id="specialMintTo" style="width:260px;" placeholder="默认自己地址">
       <button id="specialMintBtn">Special Mint</button>
       <span id="specialMintStatus"></span>
-      </div>
-    <hr style="margin:16px 0;">
+    </div>
+    <hr>
     <div>
       <h3>💰 合约资金管理</h3>
-      <div style="margin-bottom: 10px;">
-        <strong>合约余额：</strong><span id="contractBalance">加载中...</span>
-        <button id="refreshBalanceBtn" style="margin-left: 10px; background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">刷新</button>
-      </div>
       <div style="margin-bottom: 15px;">
-        <label for="withdrawToAddress">提取到地址：</label><br>
-        <input type="text" id="withdrawToAddress" placeholder="留空则提取到当前钱包地址" style="width: 400px; padding: 5px; margin-top: 5px;">
-        <button id="copyAddressBtn" style="margin-left: 5px; background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">复制当前地址</button>
-        <div style="font-size: 12px; color: #666; margin-top: 2px;">注意：合约只能提取到所有者地址，如需提取到其他地址，请先提取到当前地址再转账</div>
+        <strong>合约余额：</strong><span id="contractBalance">加载中...</span>
+        <button id="refreshBalanceBtn">刷新</button>
       </div>
-      <button id="withdrawBtn" style="background: #FF00F9; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">提取所有资金</button>
+      <button id="withdrawBtn">提取所有资金</button>
       <div id="withdrawStatus" style="margin-top: 10px;"></div>
     </div>
   </div>
@@ -199,8 +382,8 @@
   <div class="mint-section" id="myNFTSection" style="margin-top:40px;">
     <h2>My NFTs</h2>
     <button id="refreshNFTBtn" style="margin-bottom:10px;">Refresh</button>
-    <button id="batchRevealBtn" style="margin-bottom:10px; margin-left:10px; background:#2196f3;color:white;">Batch Reveal</button>
-    <button id="batchBurnBtn" style="margin-bottom:10px; margin-left:10px; background:#f44336;color:white;">Batch Burn</button>
+    <button id="batchRevealBtn" style="margin-bottom:10px; margin-left:10px;">Batch Reveal</button>
+    <button id="batchBurnBtn" style="margin-bottom:10px; margin-left:10px;">Batch Burn</button>
     <div id="nftList">Loading...</div>
   </div>
 
@@ -976,18 +1159,7 @@
         return;
       }
       
-      const withdrawToAddress = document.getElementById('withdrawToAddress').value.trim();
-      
-      // 验证地址格式
-      if (withdrawToAddress && !ethers.utils.isAddress(withdrawToAddress)) {
-        alert('请输入有效的以太坊地址');
-        return;
-      }
-      
       let confirmMessage = '确定要提取所有资金吗？此操作是不可逆的！';
-      if (withdrawToAddress) {
-        confirmMessage = `确定要提取所有资金吗？\n\n注意：由于合约限制，资金将先提取到您的钱包地址(${walletState.account})，然后您需要手动转账到目标地址(${withdrawToAddress})。\n\n此操作是不可逆的！`;
-      }
       
       if (!confirm(confirmMessage)) {
         return;
@@ -1001,9 +1173,6 @@
         await tx.wait();
         
         let successMessage = `✅ 提取资金成功！Tx: ${tx.hash}`;
-        if (withdrawToAddress) {
-          successMessage += `\n\n下一步：请手动将资金从您的钱包(${walletState.account})转账到目标地址(${withdrawToAddress})`;
-        }
         
         withdrawStatus.innerHTML = successMessage.replace(/\n/g, '<br>');
         loadContractBalance(); // 刷新余额显示
@@ -1020,17 +1189,6 @@
 
     document.getElementById('withdrawBtn').onclick = withdrawAllFunds;
     document.getElementById('refreshBalanceBtn').onclick = loadContractBalance;
-
-    // 新增复制地址功能
-    document.getElementById('copyAddressBtn').onclick = function() {
-      const address = document.getElementById('withdrawToAddress').value.trim();
-      if (address) {
-        navigator.clipboard.writeText(address);
-        alert('地址已复制到剪贴板');
-      } else {
-        alert('请先输入提取地址');
-      }
-    };
   </script>
 </body>
 </html> 
