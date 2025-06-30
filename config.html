@@ -81,6 +81,16 @@
       <button id="specialMintBtn">Special Mint</button>
       <span id="specialMintStatus"></span>
     </div>
+    <hr style="margin:16px 0;">
+    <div>
+      <h3>💰 合约资金管理</h3>
+      <div style="margin-bottom: 10px;">
+        <strong>合约余额：</strong><span id="contractBalance">加载中...</span>
+        <button id="refreshBalanceBtn" style="margin-left: 10px; background: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">刷新</button>
+      </div>
+      <button id="withdrawBtn" style="background: #FF00F9; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">提取所有资金</button>
+      <div id="withdrawStatus" style="margin-top: 10px;"></div>
+    </div>
   </div>
 
   <!-- Mint NFT 功能区 -->
@@ -170,7 +180,10 @@
       "function ownerMintSpecial(uint256 count, address to) external",
       "function revealBatch(uint256[] tokenIds) external",
       "function specialBurn(uint256 tokenId) external",
-      "function setBatchBurnThreshold(uint256 newThreshold) external"
+      "function setBatchBurnThreshold(uint256 newThreshold) external",
+      
+      // Withdraw function
+      "function withdraw() external"
     ];
 
     // ===================== 页面加载后自动连接钱包 =====================
@@ -200,11 +213,13 @@
           // 查询当前阈值
           try {
             const threshold = await contract.batchBurnThreshold();
-            batchBurnThresholdInput.value = threshold;
+            batchBurnThresholdInput.value = threshold.toString();
             batchBurnThresholdStatus.innerText = `当前阈值: ${threshold}`;
           } catch (e) {
-            batchBurnThresholdStatus.innerText = '查询阈值失败';
+            console.log('获取批量燃烧阈值失败:', e);
           }
+          // 加载合约余额
+          loadContractBalance();
         }
       } catch (err) {
         console.error('Wallet connection failed:', err);
@@ -625,11 +640,13 @@
         if (isOwner) {
           try {
             const threshold = await contract.batchBurnThreshold();
-            batchBurnThresholdInput.value = threshold;
+            batchBurnThresholdInput.value = threshold.toString();
             batchBurnThresholdStatus.innerText = `当前阈值: ${threshold}`;
           } catch (e) {
-            batchBurnThresholdStatus.innerText = '查询阈值失败';
+            console.log('获取批量燃烧阈值失败:', e);
           }
+          // 加载合约余额
+          loadContractBalance();
         }
       } catch (err) {
         console.error('Connect wallet failed:', err);
@@ -687,6 +704,56 @@
         specialURIStatus.innerText = "Failed to set Special URI.";
       }
     };
+
+    // 新增合约余额和提款功能
+    async function loadContractBalance() {
+      if (!contract || !userAccount) {
+        document.getElementById('contractBalance').innerText = '加载合约余额失败，请先连接钱包';
+        return;
+      }
+      try {
+        const balance = await provider.getBalance(contractAddress);
+        const balanceText = `${ethers.utils.formatEther(balance)} ETH`;
+        document.getElementById('contractBalance').innerText = balanceText;
+      } catch (err) {
+        console.error('加载合约余额失败:', err);
+        document.getElementById('contractBalance').innerText = '加载合约余额失败';
+      }
+    }
+
+    async function withdrawAllFunds() {
+      if (!contract || !userAccount) {
+        alert('请先连接钱包');
+        return;
+      }
+      if (!isOwner) {
+        alert('只有合约所有者才能提取资金');
+        return;
+      }
+      if (!confirm('确定要提取所有资金吗？此操作是不可逆的！')) {
+        return;
+      }
+      try {
+        const withdrawStatus = document.getElementById('withdrawStatus');
+        withdrawStatus.innerText = '正在提取资金...';
+        const tx = await contract.withdraw();
+        withdrawStatus.innerText = '等待交易确认...';
+        await tx.wait();
+        withdrawStatus.innerText = `✅ 提取资金成功！Tx: ${tx.hash}`;
+        loadContractBalance(); // 刷新余额显示
+      } catch (err) {
+        console.error('提取资金失败:', err);
+        const withdrawStatus = document.getElementById('withdrawStatus');
+        if (err && (err.code === 4001 || (err.message && err.message.toLowerCase().includes('user rejected')))) {
+          withdrawStatus.innerText = '❌ 用户取消了交易';
+        } else {
+          withdrawStatus.innerText = `❌ 提取资金失败: ${err.message}`;
+        }
+      }
+    }
+
+    document.getElementById('withdrawBtn').onclick = withdrawAllFunds;
+    document.getElementById('refreshBalanceBtn').onclick = loadContractBalance;
   </script>
 </body>
 </html> 
