@@ -70,7 +70,8 @@
       <label for="batchBurnThresholdInput">Batch Burn 最低数量：</label>
       <input type="number" id="batchBurnThresholdInput" min="1" value="10" style="width:80px;">
       <button id="setBatchBurnThresholdBtn">设置</button>
-      <span id="batchBurnThresholdStatus"></span>
+      <span id="batchBurnThresholdStatus" style="margin-left:10px;color:#d35400;"></span>
+      <span id="currentBatchBurnThreshold" style="margin-left:10px;color:#4CAF50;font-weight:bold;"></span>
     </div>
     <hr style="margin:16px 0;">
     <div>
@@ -215,6 +216,7 @@
             const threshold = await contract.batchBurnThreshold();
             batchBurnThresholdInput.value = threshold.toString();
             batchBurnThresholdStatus.innerText = `当前阈值: ${threshold}`;
+            document.getElementById('currentBatchBurnThreshold').innerText = `当前阈值: ${threshold}`;
           } catch (e) {
             console.log('获取批量燃烧阈值失败:', e);
           }
@@ -528,6 +530,7 @@
         const tx = await contract.setBatchBurnThreshold(newVal);
         await tx.wait();
         batchBurnThresholdStatus.innerText = `设置成功，当前阈值: ${newVal}`;
+        document.getElementById('currentBatchBurnThreshold').innerText = `当前阈值: ${newVal}`;
       } catch (e) {
         batchBurnThresholdStatus.innerText = '设置失败: ' + (e && e.message ? e.message : '未知错误');
       }
@@ -642,6 +645,7 @@
             const threshold = await contract.batchBurnThreshold();
             batchBurnThresholdInput.value = threshold.toString();
             batchBurnThresholdStatus.innerText = `当前阈值: ${threshold}`;
+            document.getElementById('currentBatchBurnThreshold').innerText = `当前阈值: ${threshold}`;
           } catch (e) {
             console.log('获取批量燃烧阈值失败:', e);
           }
