@@ -1283,6 +1283,7 @@
     const contractAddress = CONFIG.contractAddress;
     const contractABI = [
       "function balanceOf(address owner) public view returns (uint256)",
+      "function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256)",
       "function tokenURI(uint256 tokenId) public view returns (string)",
       "function ownerOf(uint256 tokenId) public view returns (address)",
       "function reveal(uint256 tokenId) public",
@@ -1592,29 +1593,15 @@
       isNFTsLoaded = false;
       nfts = [];
       if (!contract || !userAccount) return;
-      
       try {
         const balance = await contract.balanceOf(userAccount);
         if (balance.eq(0)) { isNFTsLoaded = true; return; }
-        
-        // 通过Transfer事件找tokenId
-        const transferFilter = contract.filters.Transfer(null, userAccount);
-        const events = await contract.queryFilter(transferFilter, 0, 'latest');
-        const potentialTokenIds = [...new Set(events.map(e => e.args.tokenId.toString()))];
-        
-        // 批量检查所有权，避免逐个查询
-        const ownershipPromises = potentialTokenIds.map(async (tokenId) => {
-          try {
-            const currentOwner = await contract.ownerOf(tokenId);
-            return currentOwner.toLowerCase() === userAccount.toLowerCase() ? tokenId : null;
-          } catch(e) {
-            console.log(`Skipping token ${tokenId} as ownerOf check failed (possibly burned).`);
-            return null;
-          }
-        });
-        
-        const ownedTokenIds = (await Promise.all(ownershipPromises)).filter(id => id !== null);
-        
+        // 用ERC721Enumerable批量获取tokenId
+        const ownedTokenIds = [];
+        for (let i = 0; i < balance; i++) {
+          const tokenId = await contract.tokenOfOwnerByIndex(userAccount, i);
+          ownedTokenIds.push(tokenId.toString());
+        }
         // 并行获取所有tokenURI
         const tokenURIPromises = ownedTokenIds.map(async (tokenId) => {
           try {
@@ -1625,14 +1612,10 @@
             return { tokenId, tokenURI: '' };
           }
         });
-        
         const tokenURIs = await Promise.all(tokenURIPromises);
-        
         // 并行获取所有metadata
         const metadataPromises = tokenURIs.map(async ({ tokenId, tokenURI }) => {
           let revealed = false, meta = {}, rarity = 'common', image = '', name = '', type = 'revealed', physical = false;
-          
-          // 直接用tokenURI字符串判断类型
           if (tokenURI && tokenURI.includes('special.json')) {
             type = 'special';
             revealed = false;
@@ -1643,7 +1626,6 @@
             type = 'revealed';
             revealed = true;
           }
-          
           if (tokenURI) {
             const metadataUrl = tokenURI.startsWith('ipfs://') ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') : tokenURI;
             try {
@@ -1656,7 +1638,6 @@
               if (metadata.name) {
                 name = metadata.name;
               }
-              // 读取physical字段
               if (metadata.physical !== undefined) {
                 physical = metadata.physical;
               }
@@ -1671,10 +1652,8 @@
               console.error(`Failed to fetch metadata from ${metadataUrl}`, e);
             }
           }
-          
           return { tokenId, revealed, image, name, rarity, type, physical };
         });
-        
         nfts = await Promise.all(metadataPromises);
         isNFTsLoaded = true;
       } catch (err) {
