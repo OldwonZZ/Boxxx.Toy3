@@ -2065,6 +2065,7 @@
         if (status) status.innerText = 'Failed to load your collection';
       }
       if (btn) btn.disabled = false;
+      await updateMintStatus();
     }
     document.getElementById('refreshBtn').onclick = handleRefresh;
     
