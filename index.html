@@ -544,7 +544,7 @@
                 </div>
             </div>
             <div class="mint-btn-group">
-                <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row">0.002<small>Eth</small></span><span class="perbox-row">Per Box</span></span></button>
+                <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row" id="mintPriceEth">--<small>Eth</small></span><span class="perbox-row">Per Box</span></span></button>
                 <button class="mint-btn" id="myBoxBtn">MY BOXXX</button>
             </div>
         </div>
@@ -590,6 +590,7 @@
         const mintProgress = document.getElementById('mintProgress');
         const mintSlider = document.getElementById('mintSlider');
         const sliderValueBox = document.getElementById('sliderValueBox');
+        const mintPriceEth = document.getElementById('mintPriceEth');
 
         let mintCount = 10;
         const MIN_MINT = 1;
@@ -695,6 +696,7 @@
                 updateUI();
                 setupEventListeners();
                 updateMintStatus();
+                await updateMintPrice();
             } catch (error) {
                 console.error('Connection failed:', error);
                 showModal('Wallet connection failed. Please check your wallet and network.', {
@@ -785,6 +787,7 @@
             provider = null;
             signer = null;
             contract = null;
+            mintPriceEth.innerHTML = '--<small>Eth</small>';
         }
 
         // 断开连接
@@ -961,6 +964,21 @@
                 updateUI();
             }
         };
+
+        // ===================== 添加updateMintPrice函数 =====================
+        async function updateMintPrice() {
+            if (!contract) {
+                mintPriceEth.innerHTML = '--<small>Eth</small>';
+                return;
+            }
+            try {
+                const price = await contract.PRICE();
+                const ethPrice = ethers.utils.formatEther(price);
+                mintPriceEth.innerHTML = `${ethPrice}<small>Eth</small>`;
+            } catch (e) {
+                mintPriceEth.innerHTML = '--<small>Eth</small>';
+            }
+        }
     </script>
 </body>
 </html><!--HTTPS only...-->
