@@ -1210,28 +1210,30 @@
       display: inline-block;
     }
     .toylize-tooltip {
-      display: flex;
-   height: 300px;
-   font-weight: 300px;
-
+      display: none;
+      left: 50%;
+      bottom: 100%;
+      margin-bottom: 10px;
       background: #231F20;
       color: #fff;
-
+      padding: 8px 18px;
       border-radius: 8px;
       font-size: 15px;
       font-family: 'Barlow Condensed', Arial, sans-serif;
       font-style: italic;
       font-weight: bold;
+      white-space: nowrap;
       z-index: 9999;
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);
       pointer-events: auto;
-      opacity: 1;
+      opacity: 0;
       transition: opacity 0.2s;
-      z-index:9999;
     }
-    .toylize-tooltip-wrapper:hover {
-      display: flex;
+    .toylize-tooltip-wrapper:hover .toylize-tooltip,
+    .toylize-tooltip-wrapper:focus-within .toylize-tooltip {
+      display: block;
       opacity: 1;
+      pointer-events: auto;
     }
   </style>
 </head>
