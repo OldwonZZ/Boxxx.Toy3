@@ -1205,6 +1205,33 @@
       background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
       color: #000;
     }
+    .toylize-tooltip-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .toylize-tooltip {
+      display: none;
+      position: absolute;
+      left: 50%;
+      bottom: 100%;
+      transform: translateX(-50%);
+      margin-bottom: 10px;
+      background: #231F20;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: 'Barlow Condensed', Arial, sans-serif;
+      font-style: italic;
+      font-weight: bold;
+      white-space: nowrap;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    .toylize-tooltip-wrapper:hover .toylize-tooltip,
+    .toylize-tooltip-wrapper:focus-within .toylize-tooltip {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -1826,21 +1853,19 @@
         // 如果是physical卡片，使用特殊的按钮布局
         if (nft.physical) {
           btnWrapper.className = 'nft-btn-wrapper physical';
-          
+          // 新增toylize按钮带tooltip
+          const toylizeWrapper = document.createElement('div');
+          toylizeWrapper.className = 'toylize-tooltip-wrapper';
           const toylizeBtn = document.createElement('button');
           toylizeBtn.className = 'nft-btn toylize';
           toylizeBtn.innerText = 'TOYLIZE';
           toylizeBtn.onclick = () => toylizeNFT(nft.tokenId);
-          // 添加info-icon和tooltip
-          const infoIcon = document.createElement('div');
-          infoIcon.className = 'info-icon';
-          infoIcon.innerText = '!';
           const tooltip = document.createElement('div');
-          tooltip.className = 'tooltip';
+          tooltip.className = 'tooltip toylize-tooltip';
           tooltip.innerText = 'Burn this box to get the PHYSICAL TOY!';
-          toylizeBtn.appendChild(infoIcon);
-          toylizeBtn.appendChild(tooltip);
-          btnWrapper.appendChild(toylizeBtn);
+          toylizeWrapper.appendChild(toylizeBtn);
+          toylizeWrapper.appendChild(tooltip);
+          btnWrapper.appendChild(toylizeWrapper);
         } else {
           // 非physical卡片，使用原有布局
           const burnBtn = document.createElement('button');
