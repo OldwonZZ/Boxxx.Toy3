@@ -1211,7 +1211,7 @@
     }
     .toylize-tooltip {
       position: absolute;
-      top: 100%;
+      bottom: 100%;
       left: 50%;
       transform: translateX(-50%);
       background: #231F20;
@@ -1229,16 +1229,7 @@
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.2s, visibility 0.2s;
-      margin-top: 10px;
-    }
-    .toylize-tooltip::after {
-      content: '';
-      position: absolute;
-      bottom: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-      border: 6px solid transparent;
-      border-bottom-color: #231F20;
+      margin-bottom: 10px;
     }
     .toylize-tooltip-wrapper:hover .toylize-tooltip,
     .toylize-tooltip-wrapper:focus-within .toylize-tooltip {
