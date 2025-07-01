@@ -544,7 +544,7 @@
                 </div>
             </div>
             <div class="mint-btn-group">
-                <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row">0.002<small>Eth</small></span><span class="perbox-row">Per Box</span></span></button>
+                <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row" id="mintPriceEth">--<small>Eth</small></span><span class="perbox-row">Per Box</span></span></button>
                 <button class="mint-btn" id="myBoxBtn">MY BOXXX</button>
             </div>
         </div>
@@ -590,6 +590,7 @@
         const mintProgress = document.getElementById('mintProgress');
         const mintSlider = document.getElementById('mintSlider');
         const sliderValueBox = document.getElementById('sliderValueBox');
+        const mintPriceEth = document.getElementById('mintPriceEth');
 
         let mintCount = 10;
         const MIN_MINT = 1;
@@ -785,6 +786,7 @@
             provider = null;
             signer = null;
             contract = null;
+            mintPriceEth.innerHTML = '--<small>Eth</small>';
         }
 
         // 断开连接
@@ -808,7 +810,11 @@
 
         // ===================== Mint 状态和进度检查 =====================
         async function updateMintStatus() {
-            if (!contract) return;
+            if (!contract) {
+                mintProgress.innerText = '--/888';
+                mintPriceEth.innerHTML = '--<small>Eth</small>';
+                return;
+            }
             try {
                 saleIsActive = await contract.saleIsActive();
                 const total = await contract.totalSupply();
@@ -816,8 +822,13 @@
                 mintProgress.innerText = `${total}/${max}`;
                 mintBtn.disabled = !saleIsActive;
                 mintStatus.innerText = '';
+                // 动态获取mint价格
+                const price = await contract.PRICE();
+                const ethPrice = ethers.utils.formatEther(price);
+                mintPriceEth.innerHTML = `${ethPrice}<small>Eth</small>`;
             } catch (e) {
                 mintProgress.innerText = '--/888';
+                mintPriceEth.innerHTML = '--<small>Eth</small>';
                 showModal('Failed to fetch mint status. Please check your wallet connection and network.', {
                     buttons: [
                         { text: 'OK', primary: true, onClick: () => {

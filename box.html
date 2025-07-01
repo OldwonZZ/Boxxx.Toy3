@@ -636,29 +636,41 @@
       background: #FF00F9;
     }
     .mint-row {
+      margin-top: 20px;
       display: flex;
-      align-items: center;
       justify-content: flex-start;
-      gap: 0px;
-      margin-bottom: 32px;
     }
     .mint-progress {
+      display: flex;
+      align-items: flex-end;
       font-size: 54px;
       font-family: 'Barlow Condensed', Arial, sans-serif;
       font-style: italic;
       font-weight: bold;
       letter-spacing: 1px;
-      margin-right: 10px;
       min-width: 110px;
       text-align: center;
       color: #231F20;
     }
+    .burned-count-display {
+      min-width: 20px;
+      display: flex;
+      font-size: 24px;
+      font-family: 'Barlow Condensed', Arial, sans-serif;
+      font-style: italic;
+      font-weight: bold;
+      color: #FF00F9;
+      align-items: flex-end;
+      padding-bottom: 6px;
+      margin-right: -20px;
+    }
     .mint-slider-container {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      margin: 0 16px;
+      align-items: flex-end;
+      padding-top: 12px;
       min-width: 260px;
+      padding-left: -20px;
     }
     .slider-labels {
       display: flex;
@@ -666,7 +678,7 @@
       font-size: 15px;
       color: #231F20;
       font-family: 'Barlow Condensed', Arial, sans-serif;
-      margin-bottom: 2px;
+      margin-left: 15px;
       justify-content: space-between;
     }
     .mint-slider {
@@ -1233,9 +1245,9 @@
       <div class="profile-actions" id="batchActions" style="display:none;">
         <button class="profile-btn batch-reveal-btn" id="batchRevealBtn">Batch Reveal</button>
         <button class="profile-btn batch-burn-btn" id="batchBurnBtn">
-          Batch Burn
+          ReBoXXX!
           <div class="info-icon">!</div>
-          <div class="tooltip">Burn 6 collections to get a brand new box</div>
+          <div class="tooltip">Burn 6 Cards to get a new BoXXX</div>
         </button>
       </div>
     </div>
@@ -1243,6 +1255,7 @@
     <div class="center-container" style="align-items:flex-start;width:85vw;max-width:85vw;margin:0 auto 24px auto;">
       <div class="mint-row">
         <div class="mint-progress" id="mintProgress">--/888</div>
+        <span id="burnedCountDisplay" class="burned-count-display"></span>
         <div class="mint-slider-container">
           <div class="slider-labels">
             <span>1</span>
@@ -1255,7 +1268,7 @@
           </div>
         </div>
         <div class="mint-btn-group">
-          <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row">0.002<small>ETH</small></span><span class="perbox-row">Per Box</span></span></button>
+          <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row" id="mintPriceEth">--<small>ETH</small></span><span class="perbox-row">Per Box</span></span></button>
         </div>
       </div>
       <div id="mintStatus"></div>
@@ -1283,6 +1296,7 @@
     const contractAddress = CONFIG.contractAddress;
     const contractABI = [
       "function balanceOf(address owner) public view returns (uint256)",
+      "function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256)",
       "function tokenURI(uint256 tokenId) public view returns (string)",
       "function ownerOf(uint256 tokenId) public view returns (address)",
       "function reveal(uint256 tokenId) public",
@@ -1300,7 +1314,9 @@
       "function saleIsActive() public view returns (bool)",
       "function PRICE() public view returns (uint256)",
       "function MAX_SUPPLY() public view returns (uint256)",
-      "function totalSupply() public view returns (uint256)"
+      "function totalSupply() public view returns (uint256)",
+      "function batchBurnAndReset(uint256[] calldata tokenIds) external",
+      "function burnedCount() external view returns (uint256)"
     ];
 
     // ========== 钱包与合约自动连接 =============
@@ -1513,6 +1529,7 @@
         window.userAccount = null;
         nfts = [];
         isNFTsLoaded = false;
+        mintPriceEth.innerHTML = '--<small>ETH</small>';
     }
 
     // 断开连接
@@ -1591,29 +1608,15 @@
       isNFTsLoaded = false;
       nfts = [];
       if (!contract || !userAccount) return;
-      
       try {
         const balance = await contract.balanceOf(userAccount);
         if (balance.eq(0)) { isNFTsLoaded = true; return; }
-        
-        // 通过Transfer事件找tokenId
-        const transferFilter = contract.filters.Transfer(null, userAccount);
-        const events = await contract.queryFilter(transferFilter, 0, 'latest');
-        const potentialTokenIds = [...new Set(events.map(e => e.args.tokenId.toString()))];
-        
-        // 批量检查所有权，避免逐个查询
-        const ownershipPromises = potentialTokenIds.map(async (tokenId) => {
-          try {
-            const currentOwner = await contract.ownerOf(tokenId);
-            return currentOwner.toLowerCase() === userAccount.toLowerCase() ? tokenId : null;
-          } catch(e) {
-            console.log(`Skipping token ${tokenId} as ownerOf check failed (possibly burned).`);
-            return null;
-          }
-        });
-        
-        const ownedTokenIds = (await Promise.all(ownershipPromises)).filter(id => id !== null);
-        
+        // 用ERC721Enumerable批量获取tokenId
+        const ownedTokenIds = [];
+        for (let i = 0; i < balance; i++) {
+          const tokenId = await contract.tokenOfOwnerByIndex(userAccount, i);
+          ownedTokenIds.push(tokenId.toString());
+        }
         // 并行获取所有tokenURI
         const tokenURIPromises = ownedTokenIds.map(async (tokenId) => {
           try {
@@ -1624,14 +1627,10 @@
             return { tokenId, tokenURI: '' };
           }
         });
-        
         const tokenURIs = await Promise.all(tokenURIPromises);
-        
         // 并行获取所有metadata
         const metadataPromises = tokenURIs.map(async ({ tokenId, tokenURI }) => {
           let revealed = false, meta = {}, rarity = 'common', image = '', name = '', type = 'revealed', physical = false;
-          
-          // 直接用tokenURI字符串判断类型
           if (tokenURI && tokenURI.includes('special.json')) {
             type = 'special';
             revealed = false;
@@ -1642,7 +1641,6 @@
             type = 'revealed';
             revealed = true;
           }
-          
           if (tokenURI) {
             const metadataUrl = tokenURI.startsWith('ipfs://') ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') : tokenURI;
             try {
@@ -1655,7 +1653,6 @@
               if (metadata.name) {
                 name = metadata.name;
               }
-              // 读取physical字段
               if (metadata.physical !== undefined) {
                 physical = metadata.physical;
               }
@@ -1670,10 +1667,8 @@
               console.error(`Failed to fetch metadata from ${metadataUrl}`, e);
             }
           }
-          
           return { tokenId, revealed, image, name, rarity, type, physical };
         });
-        
         nfts = await Promise.all(metadataPromises);
         isNFTsLoaded = true;
       } catch (err) {
@@ -2070,6 +2065,7 @@
         if (status) status.innerText = 'Failed to load your collection';
       }
       if (btn) btn.disabled = false;
+      await updateMintStatus();
     }
     document.getElementById('refreshBtn').onclick = handleRefresh;
     
@@ -2259,7 +2255,7 @@
       btn.disabled = true;
       showModal('Waiting for wallet confirmation...');
       try {
-        const tx = await contract.burnBatch(tokenIds);
+        const tx = await contract.batchBurnAndReset(tokenIds);
         showModal('<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">'
           + '<div class="modal-spinner"></div>'
           + '<div style="margin-top:8px;">Batch Burning...</div></div>');
@@ -2305,16 +2301,35 @@
       updateSliderBox();
       // 合约进度
       async function updateMintStatus() {
-        if (!window.contract) return;
+        if (!window.contract) {
+          document.getElementById('mintProgress').innerText = '--/888';
+          mintPriceEth.innerHTML = '--<small>ETH</small>';
+          document.getElementById('burnedCountDisplay').innerText = '';
+          return;
+        }
         try {
           const total = await window.contract.totalSupply();
           const max = await window.contract.MAX_SUPPLY();
-          mintProgress.innerText = `${total}/${max}`;
-          mintBtn.disabled = false;
-          mintStatus.innerText = '';
+          document.getElementById('mintProgress').innerText = `${total}/${max}`;
+          // 动态获取mint价格
+          const price = await window.contract.PRICE();
+          const ethPrice = ethers.utils.formatEther(price);
+          mintPriceEth.innerHTML = `${ethPrice}<small>ETH</small>`;
+          // 获取burnedCount
+          let burned = 0;
+          try {
+            burned = await window.contract.burnedCount();
+          } catch (e) {}
+          const burnedSpan = document.getElementById('burnedCountDisplay');
+          if (burned && burned.toString() !== '0') {
+            burnedSpan.innerHTML = `（${burned} BURNED）`;
+          } else {
+            burnedSpan.innerHTML = '';
+          }
         } catch (e) {
-          mintProgress.innerText = '--/888';
-          mintStatus.innerText = 'Failed to fetch mint status.';
+          document.getElementById('mintProgress').innerText = '--/888';
+          mintPriceEth.innerHTML = '--<small>ETH</small>';
+          document.getElementById('burnedCountDisplay').innerText = '';
         }
       }
       // mint按钮逻辑
