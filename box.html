@@ -1208,6 +1208,7 @@
     .toylize-tooltip-wrapper {
       position: relative;
       display: inline-block;
+      overflow: visible !important;
     }
     .toylize-tooltip {
       display: none;
@@ -1225,8 +1226,9 @@
       font-style: italic;
       font-weight: bold;
       white-space: nowrap;
-      z-index: 10;
+      z-index: 9999;
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      pointer-events: none;
     }
     .toylize-tooltip-wrapper:hover .toylize-tooltip,
     .toylize-tooltip-wrapper:focus-within .toylize-tooltip {
@@ -1273,7 +1275,7 @@
         <button class="profile-btn batch-burn-btn" id="batchBurnBtn">
           ReBoXXX!
           <div class="info-icon">!</div>
-          <div class="tooltip">Burn 6 BoXXX to get a new <p style="color: #FF00F9;">BoXXX</p></div>
+          <div class="tooltip">Burn 6 cards to get a new BoXXX</div>
         </button>
       </div>
     </div>
