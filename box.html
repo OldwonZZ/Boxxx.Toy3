@@ -1246,7 +1246,7 @@
         <button class="profile-btn batch-burn-btn" id="batchBurnBtn">
           ReBoXXX!
           <div class="info-icon">!</div>
-          <div class="tooltip">Burn 6 Cards to get a new BoXXX</div>
+          <div class="tooltip">Burn 6 BoXXX to get a new <p style="color: #FF00F9;">BoXXX</p></div>
         </button>
       </div>
     </div>
@@ -1831,6 +1831,15 @@
           toylizeBtn.className = 'nft-btn toylize';
           toylizeBtn.innerText = 'TOYLIZE';
           toylizeBtn.onclick = () => toylizeNFT(nft.tokenId);
+          // 添加info-icon和tooltip
+          const infoIcon = document.createElement('div');
+          infoIcon.className = 'info-icon';
+          infoIcon.innerText = '!';
+          const tooltip = document.createElement('div');
+          tooltip.className = 'tooltip';
+          tooltip.innerText = 'Burn this box to get the PHYSICAL TOY!';
+          toylizeBtn.appendChild(infoIcon);
+          toylizeBtn.appendChild(tooltip);
           btnWrapper.appendChild(toylizeBtn);
         } else {
           // 非physical卡片，使用原有布局
