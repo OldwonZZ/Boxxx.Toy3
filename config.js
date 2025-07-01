@@ -1,33 +1,29 @@
 // 合约配置文件
 const CONFIG = {
     // 合约地址
-    contractAddress: "0xEe58e20D538a98E9DF2B62400f9A4D00E737B1a0 ",
-   
-   //0x2505F5729D149FdEEbaf4c301c6327b585DbEcCb
+    contractAddress: "0xEe58e20D538a98E9DF2B62400f9A4D00E737B1a0",
     
     // 网络配置
     network: "sepolia",
-    chainId: 11155111,
+    chainId: 84532,
     
     // 当前链详细配置
     CHAIN_CONFIG: {
-        chainId: '84532',
+        chainId: '0x14a34',
         chainName: 'Base Sepolia',
         nativeCurrency: {
-            name: 'Base Sepolia',
+            name: 'Base Sepolia ETH',
             symbol: 'ETH',
             decimals: 18
         },
         rpcUrls: ['https://sepolia.base.org'],
-        blockExplorerUrls: ['https://sepolia-explorer.base.org']
+        blockExplorerUrls: ['https://sepolia.basescan.org']
     },
     
     // 链ID映射配置
     CHAIN_NAMES: {
-        '0x1': 'Ethereum',
-        '0x38': 'BNB Chain',
-        '0x89': 'Polygon',
-        '0xaa36a7': 'Sepolia'
+        '0x14a34': 'Base Sepolia',
+        '84532': 'Base Sepolia'
     },
     
     // RPC配置（可选）
