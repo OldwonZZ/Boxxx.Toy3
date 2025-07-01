@@ -1208,7 +1208,6 @@
     .toylize-tooltip-wrapper {
       position: relative;
       display: inline-block;
-      overflow: visible !important;
     }
     .toylize-tooltip {
       display: none;
@@ -1228,11 +1227,14 @@
       white-space: nowrap;
       z-index: 9999;
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-      pointer-events: none;
+      pointer-events: auto;
+      opacity: 0;
+      transition: opacity 0.2s;
     }
     .toylize-tooltip-wrapper:hover .toylize-tooltip,
     .toylize-tooltip-wrapper:focus-within .toylize-tooltip {
       display: block;
+      opacity: 1;
     }
   </style>
 </head>
