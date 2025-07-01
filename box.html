@@ -1210,10 +1210,10 @@
       display: inline-block;
     }
     .toylize-tooltip {
-      display: none;
-      left: 50%;
+      position: absolute;
       bottom: 100%;
-      margin-bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
       background: #231F20;
       color: #fff;
       padding: 8px 18px;
@@ -1227,12 +1227,14 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.12);
       pointer-events: auto;
       opacity: 0;
-      transition: opacity 0.2s;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+      margin-bottom: 10px;
     }
     .toylize-tooltip-wrapper:hover .toylize-tooltip,
     .toylize-tooltip-wrapper:focus-within .toylize-tooltip {
-      display: block;
       opacity: 1;
+      visibility: visible;
       pointer-events: auto;
     }
   </style>
