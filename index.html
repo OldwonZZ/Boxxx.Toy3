@@ -931,11 +931,13 @@
                 await updateMintStatus();
             } catch (err) {
                 let msg = 'Mint failed. Please try again.';
-                if (err && err.code === 4001) {
+                if (err && (err.code === 4001 || err.code === 'ACTION_REJECTED')) {
                     msg = 'Transaction was rejected by user.';
                 } else if (err && err.message) {
                     const emsg = err.message.toLowerCase();
-                    if (emsg.includes('insufficient funds')) {
+                    if (emsg.includes('user rejected transaction') || emsg.includes('user denied transaction')) {
+                        msg = 'Transaction was rejected by user.';
+                    } else if (emsg.includes('insufficient funds')) {
                         msg = 'Insufficient balance to mint. Please check your wallet balance.';
                     } else if (emsg.includes('exceeds balance')) {
                         msg = 'Insufficient balance to mint. Please check your wallet balance.';
@@ -949,8 +951,6 @@
                         } else {
                             msg = 'Mint failed due to contract revert.';
                         }
-                    } else if (emsg.includes('user denied transaction')) {
-                        msg = 'Transaction was rejected by user.';
                     } else if (emsg.includes('network error')) {
                         msg = 'Network error. Please check your connection.';
                     } else if (emsg.includes('nonce too high') || emsg.includes('nonce too low')) {
@@ -960,7 +960,7 @@
                     } else if (emsg.includes('max fee per gas')) {
                         msg = 'Gas fee too low. Please increase gas fee and try again.';
                     } else {
-                        msg = 'Mint failed: ' + err.message;
+                        msg = 'Mint failed. Please try again.';
                     }
                 }
                 showModal(msg, {
