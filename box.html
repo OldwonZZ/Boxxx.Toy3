@@ -884,8 +884,7 @@
         align-items: center;
     }
     .logo {
-        height: 60px;
-        width: 60px;
+        height: 70px;
         object-fit: contain;
     }
     .wallet-controls {
@@ -1206,13 +1205,45 @@
       background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #FF8C00 100%);
       color: #000;
     }
+    .toylize-tooltip-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+    .toylize-tooltip {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #231F20;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: 'Barlow Condensed', Arial, sans-serif;
+      font-style: italic;
+      font-weight: bold;
+      white-space: nowrap;
+      z-index: 9999;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      pointer-events: auto;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+      margin-bottom: 10px;
+    }
+    .toylize-tooltip-wrapper:hover .toylize-tooltip,
+    .toylize-tooltip-wrapper:focus-within .toylize-tooltip {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
   </style>
 </head>
 <body>
   <!-- 钱包连接区域 -->
   <div class="wallet-container">
     <div class="logo-container">
-      <img src="https://static.wixstatic.com/media/6d611e_b3bab1599c1049ca8f7e1d87b7a5fd90~mv2.png" alt="Logo" class="logo">
+      <img src="toy3logo.png" alt="Logo" class="logo">
     </div>
     <div class="wallet-controls">
       <div id="walletInfo"></div>
@@ -1247,7 +1278,7 @@
         <button class="profile-btn batch-burn-btn" id="batchBurnBtn">
           ReBoXXX!
           <div class="info-icon">!</div>
-          <div class="tooltip">Burn 6 Cards to get a new BoXXX</div>
+          <div class="tooltip">Burn 6 cards to get a new BoXXX</div>
         </button>
       </div>
     </div>
@@ -1827,12 +1858,19 @@
         // 如果是physical卡片，使用特殊的按钮布局
         if (nft.physical) {
           btnWrapper.className = 'nft-btn-wrapper physical';
-          
+          // 新增toylize按钮带tooltip
+          const toylizeWrapper = document.createElement('div');
+          toylizeWrapper.className = 'toylize-tooltip-wrapper';
           const toylizeBtn = document.createElement('button');
           toylizeBtn.className = 'nft-btn toylize';
           toylizeBtn.innerText = 'TOYLIZE';
           toylizeBtn.onclick = () => toylizeNFT(nft.tokenId);
-          btnWrapper.appendChild(toylizeBtn);
+          const tooltip = document.createElement('div');
+          tooltip.className = 'tooltip toylize-tooltip';
+          tooltip.innerText = 'Burn this box to get the PHYSICAL TOY!';
+          toylizeWrapper.appendChild(toylizeBtn);
+          toylizeWrapper.appendChild(tooltip);
+          btnWrapper.appendChild(toylizeWrapper);
         } else {
           // 非physical卡片，使用原有布局
           const burnBtn = document.createElement('button');

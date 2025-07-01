@@ -498,6 +498,21 @@
         #walletInfo.disconnected {
             color: #A3A3A3;
         }
+        .mybox-pointer-icon {
+            position: absolute;
+            right: 6px;
+            bottom: 4px;
+            width: 32px;
+            height: 32px;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.92;
+            transition: transform 0.18s, opacity 0.18s;
+        }
+        #myBoxBtn:hover .mybox-pointer-icon {
+            transform: scale(1.12) translateY(-4px);
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -544,7 +559,10 @@
             </div>
             <div class="mint-btn-group">
                 <button class="mint-btn" id="mintBtn"><span class="mint-label">MINT</span><span class="mint-price"><span class="eth-row" id="mintPriceEth">--<small>Eth</small></span><span class="perbox-row">Per Box</span></span></button>
-                <button class="mint-btn" id="myBoxBtn">MY BOXXX</button>
+                <button class="mint-btn" id="myBoxBtn" style="position:relative;">
+                    MY BOXXX
+                    <img src="HandPointer.png" alt="Pointer" class="mybox-pointer-icon">
+                </button>
             </div>
         </div>
         <div id="mintStatus"></div>
