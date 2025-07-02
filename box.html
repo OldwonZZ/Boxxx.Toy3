@@ -1250,6 +1250,19 @@
       box-shadow: 0 0 0 4px #FF00F9, 0 6px 12px rgba(0,0,0,0.16);
       z-index: 2;
     }
+    .nft-desc {
+      font-size: 10px;
+      color: #444;
+      font-family: 'Barlow Condensed', Arial, sans-serif;
+      font-style: italic;
+      font-weight: 400;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      text-align: center;
+      word-break: break-word;
+      line-height: 1.3;
+      opacity: 0.92;
+    }
   </style>
 </head>
 <body>
@@ -1679,7 +1692,7 @@
         const tokenURIs = await Promise.all(tokenURIPromises);
         // 并行获取所有metadata
         const metadataPromises = tokenURIs.map(async ({ tokenId, tokenURI }) => {
-          let revealed = false, meta = {}, rarity = 'common', image = '', name = '', type = 'revealed', physical = false;
+          let revealed = false, meta = {}, rarity = 'common', image = '', name = '', description = '', type = 'revealed', physical = false;
           if (tokenURI && tokenURI.includes('special.json')) {
             type = 'special';
             revealed = false;
@@ -1702,6 +1715,9 @@
               if (metadata.name) {
                 name = metadata.name;
               }
+              if (metadata.description) {
+                description = metadata.description;
+              }
               if (metadata.physical !== undefined) {
                 physical = metadata.physical;
               }
@@ -1716,7 +1732,7 @@
               console.error(`Failed to fetch metadata from ${metadataUrl}`, e);
             }
           }
-          return { tokenId, revealed, image, name, rarity, type, physical };
+          return { tokenId, revealed, image, name, description, rarity, type, physical };
         });
         nfts = await Promise.all(metadataPromises);
         isNFTsLoaded = true;
@@ -1860,6 +1876,13 @@
       nameDiv.className = 'nft-name';
       nameDiv.innerText = nft.name || 'NFT Name';
       nameWrapper.appendChild(nameDiv);
+      // 新增description字段
+      if (nft.description) {
+        const descDiv = document.createElement('div');
+        descDiv.className = 'nft-desc';
+        descDiv.innerText = nft.description;
+        nameWrapper.appendChild(descDiv);
+      }
       content.appendChild(nameWrapper);
 
       // 按钮
@@ -2593,6 +2616,28 @@
           transform: translateY(-5px);
           z-index: 1;
           transition: box-shadow 0.18s, transform 0.0s;
+        }
+      `;
+      document.head.appendChild(style);
+    })();
+  </script>
+  <script>
+    // 新增description样式
+    (function(){
+      const style = document.createElement('style');
+      style.innerHTML = `
+        .nft-desc {
+          font-size: 13px;
+          color: #444;
+          font-family: 'Barlow Condensed', Arial, sans-serif;
+          font-style: italic;
+          font-weight: 400;
+          margin-top: 2px;
+          margin-bottom: 2px;
+          text-align: center;
+          word-break: break-word;
+          line-height: 1.3;
+          opacity: 0.92;
         }
       `;
       document.head.appendChild(style);
