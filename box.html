@@ -2113,8 +2113,14 @@
           selectUnrevealedBtn.innerText = 'Select Unrevealed';
           selectUnrevealedBtn.className = 'unselect-all';
           selectUnrevealedBtn.style.marginLeft = '10px';
-          // 插入到selectionControls最后
-          selectionControls.appendChild(selectUnrevealedBtn);
+          selectUnrevealedBtn.style.display = 'inline-block';
+          // 插入到nft-counter之前
+          const nftCounter = document.getElementById('nftCounter');
+          if (nftCounter) {
+            selectionControls.insertBefore(selectUnrevealedBtn, nftCounter);
+          } else {
+            selectionControls.appendChild(selectUnrevealedBtn);
+          }
           selectUnrevealedBtn.onclick = function() {
             // 选中所有未reveal的盲盒
             const checkboxes = document.querySelectorAll('.nft-checkbox[data-type="unreveal"]');
