@@ -311,7 +311,7 @@
     }
     @media (max-width: 1400px) {
       .carousel-outer { width: 85vw; max-width: 85vw; padding: 0 32px; }
-      .nft-card, .nft-card.empty { width: 240px; height: 340px; }
+      .nft-card, .nft-card.empty { width: 240px; height: 440px; }
       .nft-card .card-img, .nft-card.empty .card-img { height: 180px; font-size: 48px; }
       .empty-text { font-size: 24px; padding: 4px 12px; border-radius: 12px; }
       .nft-card .card-content, .nft-card.empty .card-content { padding: 0 0 8px 0; min-height: 60px; }
@@ -2430,11 +2430,22 @@
         updateSelectionInfo();
         // await handleRefresh(); // 移除这里的自动刷新
       } catch (err) {
-        if (err && (err.code === 4001 || (err.message && err.message.toLowerCase().includes('user rejected')))) {
-          showModal('Transaction was cancelled by user.');
-        } else {
-          showModal('Batch Reveal failed. Please try again.');
+        let msg = 'Batch Reveal failed. Please try again.';
+        if (err && err.message) {
+          const emsg = err.message.toLowerCase();
+          if (emsg.includes('already revealed')) {
+            msg = 'Selected cards already revealed.';
+          } else if (emsg.includes('not owner')) {
+            msg = 'You are not the owner of some selected cards.';
+          } else if (emsg.includes('revert')) {
+            // 尝试提取revert原因
+            const match = err.message.match(/revert(?:ed)?[:\s]*([^\n]+)/i);
+            if (match && match[1]) msg = match[1].trim();
+          } else {
+            msg = err.message;
+          }
         }
+        showModal(msg);
       }
       btn.disabled = false;
       setTimeout(() => {
