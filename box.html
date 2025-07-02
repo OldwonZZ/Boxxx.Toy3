@@ -67,9 +67,8 @@
       width: fit-content;
       overflow-x: hidden;
       padding-bottom: 16px;
-      margin: 0;
+      padding-left: 10px;
       padding-top: 10px;
-      padding-bottom: 26px;
     }
     .nft-card, .nft-card.empty {
       width: 280px;
@@ -2577,10 +2576,9 @@
     // unselect all按钮事件
     document.getElementById('unselectAllBtn').onclick = function() {
       selectedTokenIds.clear();
-      // 更新所有checkbox状态
-      const checkboxes = document.querySelectorAll('.nft-checkbox');
-      checkboxes.forEach(checkbox => {
-        checkbox.checked = false;
+      // 移除所有卡片的选中样式
+      document.querySelectorAll('.nft-card.selected').forEach(card => {
+        card.classList.remove('selected');
       });
       updateSelectionInfo();
     };
