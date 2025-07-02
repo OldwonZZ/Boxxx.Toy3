@@ -2014,11 +2014,21 @@
               <div class=\"reveal-result-phrase\" style=\"margin-top:24px;\">${randomPhrase}</div>
             </div>
           `;
-          showModal(`<div style=\"font-size:18px;font-weight:bold;margin-bottom:8px;\">${cardHtml}</div>`, {
+          showModal(`<div style="font-size:18px;font-weight:bold;margin-bottom:8px;">${cardHtml}</div>`, {
             buttons: [
               { text: 'OK', primary: true, onClick: async () => { await handleRefresh(); } }
             ]
           });
+          setTimeout(() => {
+            const modalCloseBtn = document.querySelector('.modal-close');
+            if (modalCloseBtn) {
+              const onClose = async () => {
+                await handleRefresh();
+                modalCloseBtn.removeEventListener('click', onClose);
+              };
+              modalCloseBtn.addEventListener('click', onClose);
+            }
+          }, 100);
         } catch (e) {
           showModal('Reveal successful! (But failed to load NFT metadata)', {
             buttons: [
@@ -2365,6 +2375,16 @@
         }
       }
       btn.disabled = false;
+      setTimeout(() => {
+        const modalCloseBtn = document.querySelector('.modal-close');
+        if (modalCloseBtn) {
+          const onClose = async () => {
+            await handleRefresh();
+            modalCloseBtn.removeEventListener('click', onClose);
+          };
+          modalCloseBtn.addEventListener('click', onClose);
+        }
+      }, 100);
     };
 
     document.getElementById('batchBurnBtn').onclick = async function() {
