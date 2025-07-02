@@ -1258,7 +1258,6 @@
             <span class="selection-count" id="selectionCount">0 selected</span>
             <button class="unselect-all" id="unselectAllBtn">unselect all</button>
           </div>
-          <div id="selectUnrevealedBtnContainer" style="display:flex;align-items:center;"></div>
           <div class="nft-counter" id="nftCounter">0 Box Collected</div>
         </div>
       </div>
@@ -2105,23 +2104,6 @@
       }
       if (btn) btn.disabled = false;
       await updateMintStatus();
-      // 插入Select Unrevealed按钮逻辑
-      setTimeout(() => {
-        const btnContainer = document.getElementById('selectUnrevealedBtnContainer');
-        if (btnContainer && !document.getElementById('selectUnrevealedBtn')) {
-          const selectUnrevealedBtn = document.createElement('button');
-          selectUnrevealedBtn.id = 'selectUnrevealedBtn';
-          selectUnrevealedBtn.innerText = 'Select Unrevealed';
-          selectUnrevealedBtn.className = 'unselect-all';
-          selectUnrevealedBtn.style.marginLeft = '10px';
-          selectUnrevealedBtn.style.display = 'inline-block';
-          btnContainer.appendChild(selectUnrevealedBtn);
-          selectUnrevealedBtn.onclick = function() {
-            const checkboxes = document.querySelectorAll('.nft-checkbox[data-type="unreveal"]');
-            checkboxes.forEach(cb => { cb.checked = true; cb.dispatchEvent(new Event('change')); });
-          };
-        }
-      }, 100);
     }
     document.getElementById('refreshBtn').onclick = handleRefresh;
     
@@ -2542,6 +2524,40 @@
       });
       updateSelectionInfo();
     };
+
+    // 在selection-info右侧添加按钮
+    const selectionInfo = document.getElementById('selectionInfo');
+    if (selectionInfo && !document.getElementById('selectUnrevealedBtn')) {
+      const selectUnrevealedDiv = document.createElement('div');
+      selectUnrevealedDiv.style.display = 'inline-block';
+      selectUnrevealedDiv.style.marginLeft = '16px';
+      const selectUnrevealedBtn = document.createElement('button');
+      selectUnrevealedBtn.id = 'selectUnrevealedBtn';
+      selectUnrevealedBtn.innerText = 'Select Unrevealed';
+      selectUnrevealedBtn.style.fontWeight = '300';
+      selectUnrevealedBtn.style.fontSize = '16px';
+      selectUnrevealedBtn.style.color = '#FF00F9';
+      selectUnrevealedBtn.style.background = 'none';
+      selectUnrevealedBtn.style.border = 'none';
+      selectUnrevealedBtn.style.cursor = 'pointer';
+      selectUnrevealedBtn.style.textDecoration = 'underline';
+      selectUnrevealedBtn.style.fontFamily = 'inherit';
+      selectUnrevealedBtn.style.transition = 'color 0.2s';
+      selectUnrevealedBtn.onmouseover = () => selectUnrevealedBtn.style.color = '#A000CC';
+      selectUnrevealedBtn.onmouseout = () => selectUnrevealedBtn.style.color = '#FF00F9';
+      selectUnrevealedBtn.onclick = function() {
+        // 遍历所有NFT卡片，选中未reveal的
+        document.querySelectorAll('.nft-checkbox').forEach(cb => {
+          const card = cb.closest('.nft-card');
+          if (card && card.classList.contains('unreveal')) {
+            cb.checked = true;
+            cb.dispatchEvent(new Event('change'));
+          }
+        });
+      };
+      selectUnrevealedDiv.appendChild(selectUnrevealedBtn);
+      selectionInfo.appendChild(selectUnrevealedDiv);
+    }
   </script>
 </body>
 </html> 
