@@ -1253,3 +1253,67 @@
       line-height: 1.3;
       opacity: 0.92;
     }
+    /* box.html内联样式迁移 */
+    .carousel-outer-custom {
+      width: 85vw;
+      max-width: 85vw;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+    .height-32 {
+      height: 32px;
+    }
+    .refresh-area {
+      width: 85vw;
+      max-width: 85vw;
+      margin: 0 auto;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      min-height: 48px;
+      gap: 12px;
+    }
+    .refresh-status-text {
+      font-size: 16px;
+      font-weight: 300;
+      color: #231F20;
+    }
+    .refresh-text {
+      font-size: 16px;
+      font-weight: 300;
+      color: #231F20;
+      text-decoration: underline;
+      cursor: pointer;
+      display: none;
+    }
+    .refresh-btn {
+      font-size: 16px;
+      font-weight: 300;
+      padding: 10px 36px;
+      border-radius: 20px;
+      background: #231F20;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      z-index: 20;
+    }
+    .profile-actions-hidden {
+      display: none;
+    }
+    .center-container-custom {
+      align-items: flex-start;
+      width: 85vw;
+      max-width: 85vw;
+      margin: 0 auto 24px auto;
+    }
+    .flex-1 {
+      flex: 1;
+    }
+    .slider-container-custom {
+      position: relative;
+      width: 260px;
+      margin: 0 auto;
+    }
+    .modal-container-hidden {
+      display: none;
+    }
