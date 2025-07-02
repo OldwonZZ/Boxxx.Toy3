@@ -218,7 +218,8 @@
     .nft-card .nft-name {
       font-size: 18px;
       color: #231F20;
-      font-weight: 300;
+      font-weight: 500;
+      font-style: italic;
       margin-top: 5px;
     }
     .nft-card .nft-rarity {
@@ -1251,11 +1252,11 @@
       z-index: 2;
     }
     .nft-desc {
-      font-size: 12px;
+      font-size: 14px;
       color: #444;
       font-family: Arial, sans-serif;
       font-weight: 400;
-      margin-top: 2px;
+      margin-top: 8px;
       margin-bottom: 2px;
       text-align: center;
       word-break: break-word;
@@ -2615,28 +2616,6 @@
           transform: translateY(-5px);
           z-index: 1;
           transition: box-shadow 0.18s, transform 0.0s;
-        }
-      `;
-      document.head.appendChild(style);
-    })();
-  </script>
-  <script>
-    // 新增description样式
-    (function(){
-      const style = document.createElement('style');
-      style.innerHTML = `
-        .nft-desc {
-          font-size: 12px;
-          color: #444;
-          font-family: Arial, sans-serif;
-          font-style: italic;
-          font-weight: 400;
-          margin-top: 2px;
-          margin-bottom: 2px;
-          text-align: center;
-          word-break: break-word;
-          line-height: 1.3;
-          opacity: 0.92;
         }
       `;
       document.head.appendChild(style);
