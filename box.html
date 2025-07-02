@@ -31,10 +31,10 @@
       justify-content: flex-start;
       width: 100%;
       background: #fff;
-      overflow: hidden;
+      overflow-x: auto;
       position: relative;
-      padding-top:10px;
-      padding-bottom: 10px;
+      padding-left: 16px;
+      padding-right: 16px;
     }
     .carousel-arrow {
       background: none;
@@ -66,12 +66,10 @@
       gap: 36px;
       transition: none;
       width: fit-content;
-      overflow-x: visible;
       padding-bottom: 16px;
       padding-top: 10px;
       padding-bottom: 26px;
-      margin-left: 16px;
-      margin-right: 16px;
+      /* 不再设置overflow和margin */
     }
     .nft-card, .nft-card.empty {
       width: 280px;
