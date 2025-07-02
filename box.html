@@ -2106,14 +2106,15 @@
       await updateMintStatus();
       // 插入Select Unrevealed按钮逻辑
       setTimeout(() => {
-        const selectionInfo = document.getElementById('selectionInfo');
-        if (selectionInfo && !document.getElementById('selectUnrevealedBtn')) {
+        const selectionControls = document.getElementById('selectionControls');
+        if (selectionControls && !document.getElementById('selectUnrevealedBtn')) {
           const selectUnrevealedBtn = document.createElement('button');
           selectUnrevealedBtn.id = 'selectUnrevealedBtn';
           selectUnrevealedBtn.innerText = 'Select Unrevealed';
           selectUnrevealedBtn.className = 'unselect-all';
-          selectUnrevealedBtn.style.marginLeft = '16px';
-          selectionInfo.appendChild(selectUnrevealedBtn);
+          selectUnrevealedBtn.style.marginLeft = '10px';
+          // 插入到selectionControls最后
+          selectionControls.appendChild(selectUnrevealedBtn);
           selectUnrevealedBtn.onclick = function() {
             // 选中所有未reveal的盲盒
             const checkboxes = document.querySelectorAll('.nft-checkbox[data-type="unreveal"]');
