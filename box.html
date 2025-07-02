@@ -31,19 +31,19 @@
           <div class="nft-counter" id="nftCounter">0 Box Collected</div>
         </div>
       </div>
-    <div class="carousel-outer" style="width:85vw;max-width:85vw;margin:0 auto;padding:0 16px;">
+    <div class="carousel-outer carousel-outer-custom">
       <button class="carousel-arrow left" id="leftArrow">&#9664;</button>
       <div class="carousel-container">
         <div class="carousel-track" id="carouselTrack"></div>
       </div>
       <button class="carousel-arrow right" id="rightArrow">&#9654;</button>
     </div>
-    <div style="height:32px;"></div>
-    <div id="refreshArea" style="width:85vw;max-width:85vw;margin:0 auto;display:flex;justify-content:flex-end;align-items:center;min-height:48px;gap:12px;">
-      <span id="refreshStatusText" style="font-size:16px;font-weight:300;color:#231F20;">&nbsp;</span>
-      <span id="refreshText" style="font-size:16px;font-weight:300;color:#231F20;text-decoration:underline;cursor:pointer;display:none;">Refresh</span>
-      <button id="refreshBtn" style="font-size:16px;font-weight:300;padding:10px 36px;border-radius:20px;background:#231F20;color:#fff;border:none;cursor:pointer;z-index:20;">Load my collection</button>
-      <div class="profile-actions" id="batchActions" style="display:none;">
+    <div class="height-32"></div>
+    <div id="refreshArea" class="refresh-area">
+      <span id="refreshStatusText" class="refresh-status-text">&nbsp;</span>
+      <span id="refreshText" class="refresh-text">Refresh</span>
+      <button id="refreshBtn" class="refresh-btn">Load my collection</button>
+      <div class="profile-actions profile-actions-hidden" id="batchActions">
         <button class="profile-btn batch-reveal-btn" id="batchRevealBtn">Batch Reveal</button>
         <button class="profile-btn batch-burn-btn" id="batchBurnBtn">
           ReBoXXX!
@@ -53,14 +53,14 @@
       </div>
     </div>
     <!-- Mint Row from mint.html -->
-    <div class="center-container" style="align-items:flex-start;width:85vw;max-width:85vw;margin:0 auto 24px auto;">
+    <div class="center-container center-container-custom">
       <div class="mint-row">
         <div class="mint-progress" id="mintProgress">--/888</div>
         <span id="burnedCountDisplay" class="burned-count-display"></span>
-        <div class="mint-slider-container">
+        <div class="slider-container-custom">
           <div class="slider-labels">
             <span>1</span>
-            <span style="flex:1"></span>
+            <span class="flex-1"></span>
             <span>10</span>
           </div>
           <div style="position:relative; width:260px; margin:0 auto;">
@@ -77,7 +77,7 @@
   </div>
 
   <!-- 弹窗容器 -->
-  <div id="modalContainer" style="display:none;"></div>
+  <div id="modalContainer" class="modal-container-hidden"></div>
   <script>
     // 稀有度与颜色映射
     const RARITY_CLASS = {
