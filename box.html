@@ -2309,7 +2309,7 @@
         });
         selectedTokenIds.clear();
         updateSelectionInfo();
-        await handleRefresh();
+        // await handleRefresh(); // 移除这里的自动刷新
       } catch (err) {
         if (err && (err.code === 4001 || (err.message && err.message.toLowerCase().includes('user rejected')))) {
           showModal('Transaction was cancelled by user.');
