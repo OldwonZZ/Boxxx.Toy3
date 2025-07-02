@@ -1258,6 +1258,7 @@
             <span class="selection-count" id="selectionCount">0 selected</span>
             <button class="unselect-all" id="unselectAllBtn">unselect all</button>
           </div>
+          <div id="selectUnrevealedBtnContainer" style="display:flex;align-items:center;"></div>
           <div class="nft-counter" id="nftCounter">0 Box Collected</div>
         </div>
       </div>
@@ -2106,23 +2107,16 @@
       await updateMintStatus();
       // 插入Select Unrevealed按钮逻辑
       setTimeout(() => {
-        const selectionControls = document.getElementById('selectionControls');
-        if (selectionControls && !document.getElementById('selectUnrevealedBtn')) {
+        const btnContainer = document.getElementById('selectUnrevealedBtnContainer');
+        if (btnContainer && !document.getElementById('selectUnrevealedBtn')) {
           const selectUnrevealedBtn = document.createElement('button');
           selectUnrevealedBtn.id = 'selectUnrevealedBtn';
           selectUnrevealedBtn.innerText = 'Select Unrevealed';
           selectUnrevealedBtn.className = 'unselect-all';
           selectUnrevealedBtn.style.marginLeft = '10px';
           selectUnrevealedBtn.style.display = 'inline-block';
-          // 插入到nft-counter之前
-          const nftCounter = document.getElementById('nftCounter');
-          if (nftCounter) {
-            selectionControls.insertBefore(selectUnrevealedBtn, nftCounter);
-          } else {
-            selectionControls.appendChild(selectUnrevealedBtn);
-          }
+          btnContainer.appendChild(selectUnrevealedBtn);
           selectUnrevealedBtn.onclick = function() {
-            // 选中所有未reveal的盲盒
             const checkboxes = document.querySelectorAll('.nft-checkbox[data-type="unreveal"]');
             checkboxes.forEach(cb => { cb.checked = true; cb.dispatchEvent(new Event('change')); });
           };
