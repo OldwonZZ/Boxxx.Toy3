@@ -363,6 +363,7 @@
       line-height: 1;
       pointer-events: none;
       font-family: Arial, Helvetica, sans-serif;
+      margin-top: 1px;
     }
     .modal-content {
       width: 100%;
