@@ -1373,6 +1373,18 @@
         }
       }, { passive: false });
     })();
+
+    // ========== 触控板滚动功能 =============
+    (function enableCarouselTouchPadScroll() {
+      const track = document.getElementById('carouselTrack');
+      track.addEventListener('wheel', function(e) {
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+          // 横向滚动为主，通常为触控板手势
+          e.preventDefault();
+          track.scrollLeft += e.deltaX;
+        }
+      }, { passive: false });
+    })();
   </script>
   <script>
     // 选中卡片样式
