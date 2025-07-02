@@ -301,7 +301,7 @@
     }
     @media (max-width: 1400px) {
       .carousel-outer { width: 85vw; max-width: 85vw; padding: 0 32px; }
-      .nft-card, .nft-card.empty { width: 240px; height: 340px; }
+      .nft-card, .nft-card.empty { width: 192px; height: 360px; }
       .nft-card .card-img, .nft-card.empty .card-img { height: 180px; font-size: 48px; }
       .empty-text { font-size: 24px; padding: 4px 12px; border-radius: 12px; }
       .nft-card .card-content, .nft-card.empty .card-content { padding: 0 0 8px 0; min-height: 60px; }
