@@ -2263,7 +2263,50 @@
           + '<div class="modal-spinner"></div>'
           + '<div style="margin-top:8px;">Batch Revealing...</div></div>');
         await tx.wait();
-        showModal('Batch Reveal successful!');
+        // Reveal结果展示
+        let cardsHtml = '';
+        for (let i = 0; i < tokenIds.length; i++) {
+          try {
+            const tokenId = tokenIds[i];
+            const tokenURI = await contract.tokenURI(tokenId);
+            const metadataUrl = tokenURI.startsWith('ipfs://') ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') : tokenURI;
+            const response = await fetch(metadataUrl);
+            const metadata = await response.json();
+            const imageUrl = metadata.image ? (metadata.image.startsWith('ipfs://') ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : metadata.image) : '';
+            const name = metadata.name || 'NFT';
+            let rarity = '';
+            if (metadata.attributes && Array.isArray(metadata.attributes)) {
+              const rarityAttr = metadata.attributes.find(a => a.trait_type && a.trait_type.toLowerCase() === 'rarity');
+              if (rarityAttr && rarityAttr.value) rarity = rarityAttr.value;
+            }
+            const rarityBg = {
+              legendary: '#e18701',
+              epic: '#9e08c7',
+              rare: '#009dd1',
+              common: '#4d8da0'
+            };
+            const rarityKey = rarity ? rarity.toLowerCase() : 'common';
+            const bgColor = rarityBg[rarityKey] || '#4d8da0';
+            cardsHtml += `
+              <div style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;margin:18px 12px 0 12px;max-width:180px;min-width:120px;background:transparent;padding:0;\">
+                <div style=\"width:90px;height:90px;flex-shrink:0;display:flex;align-items:center;justify-content:center;\">
+                  ${imageUrl ? `<img src=\"${imageUrl}\" alt=\"${name}\" style=\"width:80px;height:80px;object-fit:cover;border-radius:16px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.10);\">` : '<div style=\"width:80px;height:80px;background:#eee;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;\">?</div>'}
+                </div>
+                <div style=\"margin-top:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;\">
+                  <div style=\"font-size:15px;font-weight:bold;color:#231F20;line-height:1.2;font-family:'Barlow Condensed',Arial,sans-serif;font-style:italic;\">${name}</div>
+                  <div style=\"margin-top:6px;padding:4px 12px;border-radius:8px;font-size:12px;font-weight:bold;text-transform:uppercase;color:#fff;background:${bgColor};font-family:'Barlow Condensed',Arial,sans-serif;letter-spacing:1px;\">${rarity ? rarity.toUpperCase() : ''}</div>
+                </div>
+              </div>
+            `;
+          } catch (e) {
+            cardsHtml += `<div style=\"width:120px;height:120px;display:flex;align-items:center;justify-content:center;color:#888;font-size:12px;\">Failed to load</div>`;
+          }
+        }
+        showModal(`<div style=\"font-size:18px;font-weight:bold;margin-bottom:8px;\">Batch Reveal successful!</div><div style=\"display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:0 8px;max-width:100vw;\">${cardsHtml}</div>`, {
+          buttons: [
+            { text: 'OK', primary: true, onClick: async () => { await handleRefresh(); } }
+          ]
+        });
         selectedTokenIds.clear();
         updateSelectionInfo();
         await handleRefresh();
