@@ -593,7 +593,7 @@
       // 卡片内容区
       const content = document.createElement('div');
       content.className = 'card-content';
-      
+
       // rarity
       const rarityWrapper = document.createElement('div');
       rarityWrapper.className = 'nft-rarity-wrapper';
@@ -657,11 +657,11 @@
           btnWrapper.appendChild(toylizeWrapper);
         } else {
           // 非physical卡片，使用原有布局
-          const burnBtn = document.createElement('button');
-          burnBtn.className = 'nft-btn burn';
-          burnBtn.innerText = 'BURN';
-          burnBtn.onclick = () => burnNFT(nft.tokenId);
-          btnWrapper.appendChild(burnBtn);
+        const burnBtn = document.createElement('button');
+        burnBtn.className = 'nft-btn burn';
+        burnBtn.innerText = 'BURN';
+        burnBtn.onclick = () => burnNFT(nft.tokenId);
+        btnWrapper.appendChild(burnBtn);
         }
       } else {
         const revealBtn = document.createElement('button');
@@ -790,7 +790,7 @@
                 <div style=\"width:160px;height:160px;flex-shrink:0;display:flex;align-items:center;justify-content:center;\">
                   ${imageUrl ? `<img src=\"${imageUrl}\" alt=\"${name}\" style=\"width:150px;height:150px;object-fit:cover;border-radius:24px;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,0.10);\">` : '<div style=\"width:150px;height:150px;background:#eee;border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:48px;\">?</div>'}
                 </div>
-              </div>
+                </div>
               <div style=\"margin-top:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;\">
                 <div style=\"font-size:22px;font-weight:bold;color:#231F20;line-height:1.2;font-family:'Barlow Condensed',Arial,sans-serif;font-style:italic;\">${name}</div>
                 <div style=\"margin-top:10px;padding:6px 18px;border-radius:12px;font-size:15px;font-weight:bold;text-transform:uppercase;color:#fff;background:${bgColor};font-family:'Barlow Condensed',Arial,sans-serif;letter-spacing:1px;\">${rarity ? rarity.toUpperCase() : ''}</div>
@@ -1185,9 +1185,9 @@
             // 尝试提取revert原因
             const match = err.message.match(/revert(?:ed)?[:\s]*([^\n]+)/i);
             if (match && match[1]) msg = match[1].trim();
-          } else {
+        } else {
             msg = err.message;
-          }
+        }
         }
         showModal(msg);
       }
