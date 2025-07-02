@@ -1618,15 +1618,20 @@
                 window.userAccount = userAccount;
                 
                 setupEventListeners();
+                // 新增：弹窗提示加载
+                showModal('<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">' +
+                  '<div class="modal-spinner"></div>' +
+                  '<div style="margin-top:8px;">Loading your collection...</div></div>');
                 await loadNFTs();
+                hideModal();
                 renderCarousel();
                 updateMintStatus();
-                setRefreshLoadedUI(); // 新增：自动检测钱包连接后自动切换到已加载状态
+                setRefreshLoadedUI();
             }
         } catch (error) {
             console.error('Failed to check wallet connection:', error);
+            hideModal();
         }
-        
         updateUI();
     }
 
