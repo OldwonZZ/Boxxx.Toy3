@@ -2314,9 +2314,9 @@
         }
         // batch reveal 结果弹窗内容结构优化
         const batchRevealModalHtml = `
-          <div style="width:100%;max-width:50vw;display:flex;flex-direction:column;align-items:center;">
+          <div style="width:100%;max-width:30vw;display:flex;flex-direction:column;align-items:center;">
             <div style="font-size:20px;font-weight:bold;margin-bottom:18px;text-align:center;width:100%;">Batch Reveal successful!</div>
-            <div id="batchRevealResultScroll" style="display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;align-items:flex-start;gap:0 8px;width:100%;max-width:76vw;padding-bottom:8px;scrollbar-width:none;-ms-overflow-style:none;">
+            <div id="batchRevealResultScroll" style="display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;align-items:flex-start;gap:0 8px;width:100%;max-width:28vw;padding-bottom:8px;scrollbar-width:none;-ms-overflow-style:none;">
               ${cardsHtml}
             </div>
             <style>
@@ -2329,7 +2329,43 @@
             { text: 'OK', primary: true, onClick: async () => { await handleRefresh(); } }
           ]
         });
+        // 恢复横向拖拽滚动逻辑
         setTimeout(() => {
+          const scrollDiv = document.getElementById('batchRevealResultScroll');
+          if (scrollDiv) {
+            let isDown = false;
+            let startX, scrollLeft;
+            scrollDiv.addEventListener('mousedown', (e) => {
+              isDown = true;
+              scrollDiv.classList.add('dragging');
+              startX = e.pageX - scrollDiv.offsetLeft;
+              scrollLeft = scrollDiv.scrollLeft;
+              e.preventDefault();
+            });
+            scrollDiv.addEventListener('mouseleave', () => { isDown = false; scrollDiv.classList.remove('dragging'); });
+            scrollDiv.addEventListener('mouseup', () => { isDown = false; scrollDiv.classList.remove('dragging'); });
+            scrollDiv.addEventListener('mousemove', (e) => {
+              if (!isDown) return;
+              const x = e.pageX - scrollDiv.offsetLeft;
+              const walk = (x - startX) * 1.2;
+              scrollDiv.scrollLeft = scrollLeft - walk;
+            });
+            // 支持触摸拖动
+            let touchStartX = 0, touchScrollLeft = 0;
+            scrollDiv.addEventListener('touchstart', (e) => {
+              isDown = true;
+              touchStartX = e.touches[0].pageX;
+              touchScrollLeft = scrollDiv.scrollLeft;
+            });
+            scrollDiv.addEventListener('touchend', () => { isDown = false; });
+            scrollDiv.addEventListener('touchmove', (e) => {
+              if (!isDown) return;
+              const x = e.touches[0].pageX;
+              const walk = (x - touchStartX) * 1.2;
+              scrollDiv.scrollLeft = touchScrollLeft - walk;
+            });
+          }
+          // 关闭按钮监听
           const modalCloseBtn = document.querySelector('.modal-close');
           if (modalCloseBtn) {
             const onClose = async () => {
