@@ -1360,6 +1360,19 @@
       });
       updateSelectionInfo();
     };
+
+    // ========== 鼠标滚轮滚动功能 =============
+    (function enableCarouselWheelScroll() {
+      const track = document.getElementById('carouselTrack');
+      track.addEventListener('wheel', function(e) {
+        // 只在有横向滚动条时生效
+        if (track.scrollWidth > track.clientWidth) {
+          e.preventDefault();
+          // e.deltaY为正向下滚，负向上滚
+          track.scrollLeft += e.deltaY;
+        }
+      }, { passive: false });
+    })();
   </script>
   <script>
     // 选中卡片样式
