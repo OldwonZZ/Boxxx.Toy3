@@ -2104,6 +2104,23 @@
       }
       if (btn) btn.disabled = false;
       await updateMintStatus();
+      // 插入Select Unrevealed按钮逻辑
+      setTimeout(() => {
+        const selectionInfo = document.getElementById('selectionInfo');
+        if (selectionInfo && !document.getElementById('selectUnrevealedBtn')) {
+          const selectUnrevealedBtn = document.createElement('button');
+          selectUnrevealedBtn.id = 'selectUnrevealedBtn';
+          selectUnrevealedBtn.innerText = 'Select Unrevealed';
+          selectUnrevealedBtn.className = 'unselect-all';
+          selectUnrevealedBtn.style.marginLeft = '16px';
+          selectionInfo.appendChild(selectUnrevealedBtn);
+          selectUnrevealedBtn.onclick = function() {
+            // 选中所有未reveal的盲盒
+            const checkboxes = document.querySelectorAll('.nft-checkbox[data-type="unreveal"]');
+            checkboxes.forEach(cb => { cb.checked = true; cb.dispatchEvent(new Event('change')); });
+          };
+        }
+      }, 100);
     }
     document.getElementById('refreshBtn').onclick = handleRefresh;
     
