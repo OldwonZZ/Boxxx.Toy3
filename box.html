@@ -1404,11 +1404,17 @@
       try {
         const count = await contract.userBatchBurnResetCount(userAccount);
         const ruler = count % 3;
-        // 构建三条横条，当前进度高亮
+        // 新逻辑：0=全灰，1/2=下两条粉色，上面灰
+        let bar0 = '#bbb', bar1 = '#bbb', bar2 = '#bbb';
+        if (ruler === 1 || ruler === 2) {
+          bar1 = '#FF00F9';
+          bar2 = '#FF00F9';
+        }
+        // 构建三条横条
         let bars = '';
-        bars += `<div class='ruler-bar ruler-bar-0' style='background:${ruler===0?'#bbb':'#eee'};'></div>`;
-        bars += `<div class='ruler-bar ruler-bar-1' style='background:${ruler===1?'#e15cff':'#eee'};'></div>`;
-        bars += `<div class='ruler-bar ruler-bar-2' style='background:${ruler===2?'#ff6cff':'#eee'};'></div>`;
+        bars += `<div class='ruler-bar ruler-bar-0' style='background:${bar0};'></div>`;
+        bars += `<div class='ruler-bar ruler-bar-1' style='background:${bar1};'></div>`;
+        bars += `<div class='ruler-bar ruler-bar-2' style='background:${bar2};'></div>`;
         document.getElementById('batchBurnResetRuler').innerHTML = `
           <div class='ruler-bars'>${bars}</div>
           <div class='ruler-labels'>
@@ -1455,9 +1461,7 @@
       background: #eee;
       transition: background 0.2s;
     }
-    .ruler-bar.ruler-bar-0 { background: #FF00F9; }
-    .ruler-bar.ruler-bar-1 { background: #FF00F9; }
-    .ruler-bar.ruler-bar-2 { background: #FF00F9; }
+
     .ruler-labels {
       display: flex;
       flex-direction: column;
@@ -1469,8 +1473,6 @@
       line-height: 1.1;
       letter-spacing: 1px;
     }
-    .ruler-label-special { color: #111; }
-    .ruler-label-reward { color: #111; }
   </style>
 </body>
 </html> 
