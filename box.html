@@ -50,7 +50,8 @@
           <div class="info-icon">!</div>
           <div class="tooltip">Burn 6 cards to get a new BoXXX</div>
         </button>
-        <div id="batchBurnResetRuler" class="batch-burn-reset-ruler tooltip-wrapper" style="display:inline-block;margin-left:16px;vertical-align:middle;">
+        <div id="batchBurnResetRuler" class="batch-burn-reset-ruler" style="display:inline-block;margin-left:16px;vertical-align:middle;position:relative;">
+          <div class="tooltip batch-burn-reset-tooltip" style="display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:8px;white-space:nowrap;z-index:10;pointer-events:none;background:#222;color:#fff;padding:7px 16px;border-radius:8px;font-size:14px;font-weight:normal;box-shadow:0 2px 8px rgba(0,0,0,0.12);text-align:center;">执行3次reboxxx必定会获得一个epic级别的限定boxxx</div>
         </div>
       </div>
     </div>
@@ -660,11 +661,11 @@
           toylizeWrapper.appendChild(tooltip);
           btnWrapper.appendChild(toylizeWrapper);
         } else {
-          const burnBtn = document.createElement('button');
-          burnBtn.className = 'nft-btn burn';
-          burnBtn.innerText = 'BURN';
-          burnBtn.onclick = () => burnNFT(nft.tokenId);
-          btnWrapper.appendChild(burnBtn);
+        const burnBtn = document.createElement('button');
+        burnBtn.className = 'nft-btn burn';
+        burnBtn.innerText = 'BURN';
+        burnBtn.onclick = () => burnNFT(nft.tokenId);
+        btnWrapper.appendChild(burnBtn);
         }
       } else if (nft.type === 'special') {
         const specialBurnBtn = document.createElement('button');
@@ -1155,6 +1156,20 @@
               const walk = (x - startX) * 1.2;
               scrollDiv.scrollLeft = scrollLeft - walk;
             });
+            // 支持触摸拖动
+            let touchStartX = 0, touchScrollLeft = 0;
+            scrollDiv.addEventListener('touchstart', (e) => {
+              isDown = true;
+              touchStartX = e.touches[0].pageX;
+              touchScrollLeft = scrollDiv.scrollLeft;
+            });
+            scrollDiv.addEventListener('touchend', () => { isDown = false; });
+            scrollDiv.addEventListener('touchmove', (e) => {
+              if (!isDown) return;
+              const x = e.touches[0].pageX;
+              const walk = (x - touchStartX) * 1.2;
+              scrollDiv.scrollLeft = touchScrollLeft - walk;
+            });
           }
           // 关闭按钮监听
           const modalCloseBtn = document.querySelector('.modal-close');
@@ -1403,7 +1418,6 @@
         bars += `<div class='ruler-bar ruler-bar-1' style='background:${bar1};'></div>`;
         bars += `<div class='ruler-bar ruler-bar-2' style='background:${bar2};'></div>`;
         document.getElementById('batchBurnResetRuler').innerHTML = `
-          <div class='ruler-tooltip'>执行3次reboxxx必定会获得一个epic级别的限定boxxx</div>
           <div class='ruler-bars'>${bars}</div>
           <div class='ruler-labels'>
             <div class='ruler-label-special'>SPECIAL</div>
@@ -1414,6 +1428,19 @@
         document.getElementById('batchBurnResetRuler').innerHTML = '';
       }
     }
+
+    // 悬停tooltip逻辑
+    (function enableBatchBurnResetRulerTooltip() {
+      const ruler = document.getElementById('batchBurnResetRuler');
+      if (!ruler) return;
+      const tooltip = ruler.querySelector('.batch-burn-reset-tooltip');
+      ruler.addEventListener('mouseenter', function() {
+        if (tooltip) tooltip.style.display = 'block';
+      });
+      ruler.addEventListener('mouseleave', function() {
+        if (tooltip) tooltip.style.display = 'none';
+      });
+    })();
   </script>
   <script>
     // 选中卡片样式
@@ -1436,7 +1463,6 @@
       flex-direction: row;
       justify-content: flex-start;
       font-family: 'Barlow Condensed', Arial, sans-serif;
-      position: relative;
     }
     .ruler-bars {
       display: flex;
@@ -1461,36 +1487,6 @@
       color: #FF00F9;
       line-height: 1.1;
       letter-spacing: 1px;
-      gap: 8px;
-    }
-    .ruler-label-special { color: #111; }
-    .ruler-label-reward { color: #111; }
-    /* Tooltip 样式 */
-    .tooltip-wrapper {
-      position: relative;
-      display: inline-block;
-    }
-    .ruler-tooltip {
-      display: none;
-      position: absolute;
-      left: 50%;
-      top: -38px;
-      transform: translateX(-50%);
-      background: #231f20;
-      color: #fff;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-family: 'Barlow Condensed', Arial, sans-serif;
-      font-style: italic;
-      font-weight: bold;
-      white-space: nowrap;
-      z-index: 10;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-      pointer-events: none;
-    }
-    .tooltip-wrapper:hover .ruler-tooltip {
-      display: block;
     }
   </style>
 </body>
