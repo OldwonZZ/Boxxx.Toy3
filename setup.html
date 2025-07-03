@@ -66,7 +66,21 @@
       <button id="setSpecialURIBtn">Set Special URI</button>
       <span id="specialURIStatus"></span>
     </div>
+    <div style="margin-top: 15px;">
+      <label>Reward URIs (for reward NFTs, 3 types):</label><br>
+      <input type="text" id="rewardURIInput0" placeholder="ipfs://cid_for_reward/reward0.json" style="width:320px;">
+      <button id="setRewardURIBtn0">Set Reward URI 0</button>
+      <span id="rewardURIStatus0"></span><br>
+      <input type="text" id="rewardURIInput1" placeholder="ipfs://cid_for_reward/reward1.json" style="width:320px; margin-top:5px;">
+      <button id="setRewardURIBtn1">Set Reward URI 1</button>
+      <span id="rewardURIStatus1"></span><br>
+      <input type="text" id="rewardURIInput2" placeholder="ipfs://cid_for_reward/reward2.json" style="width:320px; margin-top:5px;">
+      <button id="setRewardURIBtn2">Set Reward URI 2</button>
+      <span id="rewardURIStatus2"></span>
+    </div>
     <div id="ownerStatus" style="margin-top: 10px;"></div>
+    <div id="batchBurnResetCount" style="margin-top:10px;color:#1976d2;font-weight:bold;"></div>
+    <button id="refreshBatchBurnResetCountBtn" style="margin-top:5px;">Refresh BatchBurnAndReset Count</button>
     <hr style="margin:16px 0;">
     <div>
       <label for="batchBurnThresholdInput">Batch Burn 最低数量：</label>
@@ -199,7 +213,13 @@
       "function setPrice(uint256 newPrice) external",
       
       // Withdraw function
-      "function withdraw() external"
+      "function withdraw() external",
+
+      // Reward URI functions
+      "function setRewardURI(uint8 idx, string uri) external",
+      "function rewardURIs(uint256) public view returns (string)",
+      "function userBatchBurnResetCount(address) view returns (uint256)",
+      "function tokenOfOwnerByIndex(address owner, uint256 index) view returns (uint256)",
     ];
 
     // ===================== 页面加载后自动连接钱包 =====================
@@ -239,6 +259,7 @@
           loadContractBalance();
         }
         await refreshMintPrice();
+        await updateBatchBurnResetCount();
       } catch (err) {
         console.error('Wallet connection failed:', err);
         // no alert
@@ -321,7 +342,7 @@
     };
 
     // ===================== 新增：我的NFT查看和Reveal功能（已修复） =====================
-    // 扫描当前钱包所有NFT
+    // 使用tokenOfOwnerByIndex优化加载
     async function loadMyNFTs() {
       if (!contract || !userAccount) {
         nftListDiv.innerText = 'Please connect your wallet first';
@@ -329,139 +350,109 @@
       }
       selectedNFTs.clear();
       try {
-        nftListDiv.innerHTML = '<h4>Scanning your NFTs... (this may take a while)</h4>';
+        nftListDiv.innerHTML = '<h4>Loading your NFTs...</h4>';
         const balance = await contract.balanceOf(userAccount);
         if (balance.eq(0)) {
-            nftListDiv.innerText = 'You do not own any NFTs.';
-            return;
+          nftListDiv.innerText = 'You do not own any NFTs.';
+          return;
         }
-        
-        // 1. 通过扫描Transfer事件，找到所有曾经转给你的tokenId
-        const transferFilter = contract.filters.Transfer(null, userAccount);
-        const events = await contract.queryFilter(transferFilter, 0, 'latest');
-        const potentialTokenIds = [...new Set(events.map(event => event.args.tokenId.toString()))];
-
-        if (potentialTokenIds.length === 0) {
-            nftListDiv.innerText = 'No NFTs found in your history.';
-            return;
-        }
-
-        // 2. 验证所有权并显示NFT
-        nftListDiv.innerHTML = '<h4>Loading your NFT details...</h4>';
         let html = '';
         let ownedCount = 0;
-        for (const tokenId of potentialTokenIds.reverse()) { // 从最新的开始显示
+        for (let i = 0; i < balance; i++) {
+          try {
+            const tokenId = await contract.tokenOfOwnerByIndex(userAccount, i);
+            let tokenURI = '';
+            let revealed = false;
+            let type = 'revealed';
             try {
-                const currentOwner = await contract.ownerOf(tokenId);
-                if (currentOwner.toLowerCase() !== userAccount.toLowerCase()) {
-                    continue; // 如果已转出，则跳过
-                }
-                ownedCount++;
-                
-                let tokenURI = '';
-                let revealed = false;
-                let type = 'revealed';
-                try {
-                    tokenURI = await contract.tokenURI(tokenId);
-                    // 修正：用 normalizeUrl 去除末尾斜杠后再比较
-                    function normalizeUrl(url) {
-                        return url ? url.replace(/\/+$/, '') : '';
-                    }
-                    if (tokenURI && defaultBaseURIOnChain && normalizeUrl(tokenURI) !== normalizeUrl(defaultBaseURIOnChain)) {
-                        revealed = true;
-                    }
-                    if (tokenURI && tokenURI.includes('unrevealed.json')) {
-                      type = 'unreveal';
-                    } else if (tokenURI && tokenURI.includes('special.json')) {
-                      type = 'special';
-                    }
-                    // 调试输出
-                    console.log('tokenId', tokenId, 'tokenURI', tokenURI, 'defaultBaseURIOnChain', defaultBaseURIOnChain, 'revealed', revealed);
-                } catch (e) {
-                    console.error(`获取TokenURI失败 for tokenId: ${tokenId}`, e);
-                }
-                
-                html += `<div style='margin-bottom:18px;padding:10px;border:1px solid #eee;display:inline-block;width:150px;vertical-align:top;position:relative;'>`;
-                html += `<input type='checkbox' class='nft-checkbox' data-tokenid='${tokenId}' data-type='${type}' style='position:absolute;left:5px;top:5px;z-index:2;' />`;
-                html += `<b>Token ID: ${tokenId}</b><br/>`;
-
-                if (tokenURI) {
-                    const metadataUrl = tokenURI.startsWith('ipfs://') 
-                        ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') 
-                        : tokenURI;
-                    
-                    try {
-                        const response = await fetch(metadataUrl);
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        const metadata = await response.json();
-                        if (metadata.image) {
-                            const imageUrl = metadata.image.startsWith('ipfs://') 
-                                ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') 
-                                : metadata.image;
-                            html += `<img src='${imageUrl}' alt='NFT ${tokenId}' style='width:120px;height:120px;object-fit:cover;margin:8px 0;'/>`;
-                        } else {
-                            html += `<div style='color:#999;font-size:12px;height:120px;display:flex;align-items:center;'>Image not found</div>`;
-                        }
-                        // 显示 name 字段
-                        html += `<div><b>Name:</b> ${metadata.name ? metadata.name : 'Not found'}</div>`;
-                        // 显示 description 字段
-                        html += `<div style='font-size:12px;color:#555;'><b>Description:</b> ${metadata.description ? metadata.description : 'Not found'}</div>`;
-                        // 显示 attributes 字段
-                        if (metadata.attributes && Array.isArray(metadata.attributes) && metadata.attributes.length > 0) {
-                            html += `<div style='font-size:12px;'><b>Attributes:</b> `;
-                            metadata.attributes.forEach(attr => {
-                                html += `<span style='margin-right:8px;'>${attr.trait_type}: ${attr.value}</span>`;
-                            });
-                            html += `</div>`;
-                        } else {
-                            html += `<div style='font-size:12px;'><b>Attributes:</b> Not found</div>`;
-                        }
-                    } catch(e) {
-                        html += `<div style="color:red;font-size:12px;height:120px;display:flex;align-items:center;">Failed to load metadata</div>`;
-                        html += `<div><b>Name:</b> Not found</div>`;
-                        html += `<div style='font-size:12px;color:#555;'><b>Description:</b> Not found</div>`;
-                        html += `<div style='font-size:12px;'><b>Attributes:</b> Not found</div>`;
-                        console.error(`Failed to fetch metadata from ${metadataUrl}`, e);
-                    }
-                } else {
-                     html += `<div style="color:red;font-size:12px;height:120px;display:flex;align-items:center;">Failed to get Token URI</div>`;
-                }
-
-                // 渲染按钮
-                if (type === 'special') {
-                  html += `<button onclick='specialBurn(${tokenId})'>Special Burn</button>`;
-                } else if (type === 'unreveal') {
-                  html += `<button onclick='revealNFT(${tokenId})'>Reveal</button>`;
-                } else {
-                  html += `<button onclick='burnNFT(${tokenId})'>Burn</button>`;
-                }
-                html += `</div>`;
-            } catch(e) {
-                console.log(`Skipping token ${tokenId} as ownerOf check failed (possibly burned).`);
+              tokenURI = await contract.tokenURI(tokenId);
+              function normalizeUrl(url) {
+                return url ? url.replace(/\/+$/, '') : '';
+              }
+              if (tokenURI && defaultBaseURIOnChain && normalizeUrl(tokenURI) !== normalizeUrl(defaultBaseURIOnChain)) {
+                revealed = true;
+              }
+              if (tokenURI && tokenURI.includes('unrevealed.json')) {
+                type = 'unreveal';
+              } else if (tokenURI && tokenURI.includes('special.json')) {
+                type = 'special';
+              }
+            } catch (e) {
+              console.error(`Failed to get TokenURI for tokenId: ${tokenId}`, e);
             }
-        }
-        
-        if (ownedCount === 0) {
-            nftListDiv.innerText = 'You do not own any NFTs.';
-        } else {
-            nftListDiv.innerHTML = html;
-            // 绑定checkbox事件
-            document.querySelectorAll('.nft-checkbox').forEach(cb => {
-              cb.addEventListener('change', function() {
-                const tid = this.getAttribute('data-tokenid');
-                if (this.checked) {
-                  selectedNFTs.add(tid);
+            html += `<div style='margin-bottom:18px;padding:10px;border:1px solid #eee;display:inline-block;width:150px;vertical-align:top;position:relative;'>`;
+            html += `<input type='checkbox' class='nft-checkbox' data-tokenid='${tokenId}' data-type='${type}' style='position:absolute;left:5px;top:5px;z-index:2;' />`;
+            html += `<b>Token ID: ${tokenId}</b><br/>`;
+            if (tokenURI) {
+              const metadataUrl = tokenURI.startsWith('ipfs://') 
+                ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') 
+                : tokenURI;
+              try {
+                const response = await fetch(metadataUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const metadata = await response.json();
+                if (metadata.image) {
+                  const imageUrl = metadata.image.startsWith('ipfs://') 
+                    ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') 
+                    : metadata.image;
+                  html += `<img src='${imageUrl}' alt='NFT ${tokenId}' style='width:120px;height:120px;object-fit:cover;margin:8px 0;'/>`;
                 } else {
-                  selectedNFTs.delete(tid);
+                  html += `<div style='color:#999;font-size:12px;height:120px;display:flex;align-items:center;'>Image not found</div>`;
                 }
-              });
-            });
+                html += `<div><b>Name:</b> ${metadata.name ? metadata.name : 'Not found'}</div>`;
+                html += `<div style='font-size:12px;color:#555;'><b>Description:</b> ${metadata.description ? metadata.description : 'Not found'}</div>`;
+                if (metadata.attributes && Array.isArray(metadata.attributes) && metadata.attributes.length > 0) {
+                  html += `<div style='font-size:12px;'><b>Attributes:</b> `;
+                  metadata.attributes.forEach(attr => {
+                    html += `<span style='margin-right:8px;'>${attr.trait_type}: ${attr.value}</span>`;
+                  });
+                  html += `</div>`;
+                } else {
+                  html += `<div style='font-size:12px;'><b>Attributes:</b> Not found</div>`;
+                }
+              } catch(e) {
+                html += `<div style="color:red;font-size:12px;height:120px;display:flex;align-items:center;">Failed to load metadata</div>`;
+                html += `<div><b>Name:</b> Not found</div>`;
+                html += `<div style='font-size:12px;color:#555;'><b>Description:</b> Not found</div>`;
+                html += `<div style='font-size:12px;'><b>Attributes:</b> Not found</div>`;
+                console.error(`Failed to fetch metadata from ${metadataUrl}`, e);
+              }
+            } else {
+              html += `<div style=\"color:red;font-size:12px;height:120px;display:flex;align-items:center;\">Failed to get Token URI</div>`;
+            }
+            if (type === 'special') {
+              html += `<button onclick='specialBurn(${tokenId})'>Special Burn</button>`;
+            } else if (type === 'unreveal') {
+              html += `<button onclick='revealNFT(${tokenId})'>Reveal</button>`;
+            } else {
+              html += `<button onclick='burnNFT(${tokenId})'>Burn</button>`;
+            }
+            html += `</div>`;
+            ownedCount++;
+          } catch (e) {
+            console.log(`Skipping token at index ${i} due to error:`, e);
+          }
         }
-    } catch (err) {
+        if (ownedCount === 0) {
+          nftListDiv.innerText = 'You do not own any NFTs.';
+        } else {
+          nftListDiv.innerHTML = html;
+          document.querySelectorAll('.nft-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+              const tid = this.getAttribute('data-tokenid');
+              if (this.checked) {
+                selectedNFTs.add(tid);
+              } else {
+                selectedNFTs.delete(tid);
+              }
+            });
+          });
+        }
+      } catch (err) {
         console.error("Failed to load NFTs:", err);
         nftListDiv.innerText = 'Error loading NFTs, check console for details.';
+      }
     }
-}
 
     // ===================== 新增：Burn NFT功能 =====================
     window.burnNFT = async function(tokenId) {
@@ -669,6 +660,7 @@
           loadContractBalance();
         }
         await refreshMintPrice();
+        await updateBatchBurnResetCount();
       } catch (err) {
         console.error('Connect wallet failed:', err);
         alert('User rejected connection request');
@@ -808,6 +800,54 @@
         mintPriceStatus.innerText = 'Failed to set price';
       }
     };
+
+    // ===================== Reward URI 设置 =====================
+    const rewardURIInputs = [
+      document.getElementById('rewardURIInput0'),
+      document.getElementById('rewardURIInput1'),
+      document.getElementById('rewardURIInput2')
+    ];
+    const setRewardURIBtns = [
+      document.getElementById('setRewardURIBtn0'),
+      document.getElementById('setRewardURIBtn1'),
+      document.getElementById('setRewardURIBtn2')
+    ];
+    const rewardURIStatus = [
+      document.getElementById('rewardURIStatus0'),
+      document.getElementById('rewardURIStatus1'),
+      document.getElementById('rewardURIStatus2')
+    ];
+    for (let i = 0; i < 3; i++) {
+      setRewardURIBtns[i].onclick = async function() {
+        if (!isOwner) return;
+        const uri = rewardURIInputs[i].value;
+        if (!uri) {
+          rewardURIStatus[i].innerText = 'Please enter Reward URI';
+          return;
+        }
+        setRewardURIBtns[i].disabled = true;
+        rewardURIStatus[i].innerText = 'Setting...';
+        try {
+          const tx = await contract.setRewardURI(i, uri);
+          await tx.wait();
+          rewardURIStatus[i].innerText = `Reward URI ${i} set successfully! Tx: ${tx.hash}`;
+        } catch (e) {
+          rewardURIStatus[i].innerText = 'Failed: ' + (e && e.message ? e.message : 'Unknown error');
+        }
+        setRewardURIBtns[i].disabled = false;
+      };
+    }
+
+    async function updateBatchBurnResetCount() {
+      if (!contract || !userAccount) return;
+      try {
+        const count = await contract.userBatchBurnResetCount(userAccount);
+        document.getElementById('batchBurnResetCount').innerText = `Your BatchBurnAndReset Count: ${count}`;
+      } catch (e) {
+        document.getElementById('batchBurnResetCount').innerText = 'Failed to fetch batch burn count';
+      }
+    }
+    document.getElementById('refreshBatchBurnResetCountBtn').onclick = updateBatchBurnResetCount;
   </script>
 </body>
 </html> 
