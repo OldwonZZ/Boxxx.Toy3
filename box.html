@@ -50,7 +50,7 @@
           <div class="info-icon">!</div>
           <div class="tooltip">Burn 6 cards to get a new BoXXX</div>
         </button>
-        <div id="batchBurnResetRuler" class="batch-burn-reset-ruler" style="display:inline-block;margin-left:16px;vertical-align:middle;font-size:18px;font-weight:bold;color:#1976d2;"></div>
+        <div id="batchBurnResetRuler" class="batch-burn-reset-ruler" style="display:inline-block;margin-left:16px;vertical-align:middle;"></div>
       </div>
     </div>
     <!-- Mint Row from mint.html -->
@@ -1398,15 +1398,26 @@
     // ruler计数器
     async function updateBatchBurnResetRuler() {
       if (!contract || !userAccount) {
-        document.getElementById('batchBurnResetRuler').innerText = '';
+        document.getElementById('batchBurnResetRuler').innerHTML = '';
         return;
       }
       try {
         const count = await contract.userBatchBurnResetCount(userAccount);
         const ruler = count % 3;
-        document.getElementById('batchBurnResetRuler').innerText = `BatchBurnAndReset Progress: ${ruler}`;
+        // 构建三条横条，当前进度高亮
+        let bars = '';
+        bars += `<div class='ruler-bar ruler-bar-0' style='background:${ruler===0?'#bbb':'#eee'};'></div>`;
+        bars += `<div class='ruler-bar ruler-bar-1' style='background:${ruler===1?'#e15cff':'#eee'};'></div>`;
+        bars += `<div class='ruler-bar ruler-bar-2' style='background:${ruler===2?'#ff6cff':'#eee'};'></div>`;
+        document.getElementById('batchBurnResetRuler').innerHTML = `
+          <div class='ruler-bars'>${bars}</div>
+          <div class='ruler-labels'>
+            <div class='ruler-label-special'>SPECIAL</div>
+            <div class='ruler-label-reward'>REWARD</div>
+          </div>
+        `;
       } catch (e) {
-        document.getElementById('batchBurnResetRuler').innerText = '';
+        document.getElementById('batchBurnResetRuler').innerHTML = '';
       }
     }
   </script>
@@ -1425,5 +1436,42 @@
       document.head.appendChild(style);
     })();
   </script>
+  <style>
+    .batch-burn-reset-ruler {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Barlow Condensed', Arial, sans-serif;
+    }
+    .ruler-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-right: 8px;
+    }
+    .ruler-bar {
+      width: 48px;
+      height: 16px;
+      border-radius: 4px;
+      background: #eee;
+      transition: background 0.2s;
+    }
+    .ruler-bar.ruler-bar-0 { background: #bbb; }
+    .ruler-bar.ruler-bar-1 { background: #e15cff; }
+    .ruler-bar.ruler-bar-2 { background: #ff6cff; }
+    .ruler-labels {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-size: 2.2rem;
+      font-weight: bold;
+      font-style: italic;
+      color: #111;
+      line-height: 1.1;
+      letter-spacing: 1px;
+    }
+    .ruler-label-special { color: #111; }
+    .ruler-label-reward { color: #111; }
+  </style>
 </body>
 </html> 
