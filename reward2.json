@@ -1,6 +1,7 @@
 {
   "name": "Blind Box Voucher",
-  "description": "Burn to get two BoXXX",
+    "physical": true,
+  "description": "Special Reward from Reboxxx",
   "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/reward_2.png",
   "attributes": [
     {
