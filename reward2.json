@@ -1,7 +1,7 @@
 {
   "name": "Blind Box Voucher",
   "description": "Burn to get two BoXXX",
-  "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/special.png",
+  "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/reward_2.png",
   "attributes": [
     {
       "trait_type": "Rarity",
