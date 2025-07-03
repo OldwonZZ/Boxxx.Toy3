@@ -50,6 +50,7 @@
           <div class="info-icon">!</div>
           <div class="tooltip">Burn 6 cards to get a new BoXXX</div>
         </button>
+        <div id="batchBurnResetRuler" class="batch-burn-reset-ruler" style="display:inline-block;margin-left:16px;vertical-align:middle;font-size:18px;font-weight:bold;color:#1976d2;"></div>
       </div>
     </div>
     <!-- Mint Row from mint.html -->
@@ -117,7 +118,8 @@
       "function MAX_SUPPLY() public view returns (uint256)",
       "function totalSupply() public view returns (uint256)",
       "function batchBurnAndReset(uint256[] calldata tokenIds) external",
-      "function burnedCount() external view returns (uint256)"
+      "function burnedCount() external view returns (uint256)",
+      "function userBatchBurnResetCount(address user) external view returns (uint256)"
     ];
 
     // ========== 钱包与合约自动连接 =============
@@ -230,6 +232,7 @@
             renderCarousel();
             updateMintStatus();
             setRefreshLoadedUI(); // 新增：钱包连接后自动切换到已加载状态
+            await updateBatchBurnResetRuler();
         } catch (error) {
             console.error('Connection failed:', error);
             showModal('Wallet connection failed. Please check your wallet and network.', {
@@ -397,6 +400,7 @@
                 renderCarousel();
                 updateMintStatus();
                 setRefreshLoadedUI();
+                await updateBatchBurnResetRuler();
             }
         } catch (error) {
             console.error('Failed to check wallet connection:', error);
@@ -632,17 +636,16 @@
       // 按钮
       const btnWrapper = document.createElement('div');
       btnWrapper.className = 'nft-btn-wrapper';
-      if (nft.type === 'special') {
-        const specialBtn = document.createElement('button');
-        specialBtn.className = 'nft-btn special-burn';
-        specialBtn.innerText = 'GET 2 BoXXX';
-        specialBtn.onclick = () => specialBurn(nft.tokenId);
-        btnWrapper.appendChild(specialBtn);
+      // rewardNFT只显示TOYLIZE按钮
+      if (nft.tokenId && Number(nft.tokenId) >= 20000) {
+        const toylizeBtn = document.createElement('button');
+        toylizeBtn.className = 'nft-btn toylize';
+        toylizeBtn.innerText = 'TOYLIZE';
+        toylizeBtn.onclick = () => toylizeNFT(nft.tokenId);
+        btnWrapper.appendChild(toylizeBtn);
       } else if (nft.revealed) {
-        // 如果是physical卡片，使用特殊的按钮布局
         if (nft.physical) {
           btnWrapper.className = 'nft-btn-wrapper physical';
-          // 新增toylize按钮带tooltip
           const toylizeWrapper = document.createElement('div');
           toylizeWrapper.className = 'toylize-tooltip-wrapper';
           const toylizeBtn = document.createElement('button');
@@ -656,13 +659,18 @@
           toylizeWrapper.appendChild(tooltip);
           btnWrapper.appendChild(toylizeWrapper);
         } else {
-          // 非physical卡片，使用原有布局
-        const burnBtn = document.createElement('button');
-        burnBtn.className = 'nft-btn burn';
-        burnBtn.innerText = 'BURN';
-        burnBtn.onclick = () => burnNFT(nft.tokenId);
-        btnWrapper.appendChild(burnBtn);
+          const burnBtn = document.createElement('button');
+          burnBtn.className = 'nft-btn burn';
+          burnBtn.innerText = 'BURN';
+          burnBtn.onclick = () => burnNFT(nft.tokenId);
+          btnWrapper.appendChild(burnBtn);
         }
+      } else if (nft.type === 'special') {
+        const specialBurnBtn = document.createElement('button');
+        specialBurnBtn.className = 'nft-btn special-burn';
+        specialBurnBtn.innerText = 'SPECIAL BURN';
+        specialBurnBtn.onclick = () => specialBurn(nft.tokenId);
+        btnWrapper.appendChild(specialBurnBtn);
       } else {
         const revealBtn = document.createElement('button');
         revealBtn.className = 'nft-btn reveal';
@@ -876,12 +884,12 @@
           + '<div style="margin-top:8px;">Loading your collection...</div></div>');
         await loadNFTs();
         renderCarousel();
-        // 判断是否加载到NFT
         if (nfts && nfts.length > 0 && nfts.some(nft => !nft.empty)) {
           hideModal();
           setRefreshLoadedUI();
+          await updateBatchBurnResetRuler();
         } else {
-          hideModal(); // 关闭加载弹窗
+          hideModal();
           showModal('No NFTs found in your wallet', {
             buttons: [{ text: 'OK', primary: true }]
           });
@@ -890,7 +898,7 @@
           if (refreshText) refreshText.style.display = 'none';
         }
       } catch (e) {
-        hideModal(); // 关闭加载弹窗
+        hideModal();
         showModal('Failed to load collection. Please try again.', {
           buttons: [{ text: 'OK', primary: true }]
         });
@@ -898,6 +906,7 @@
       }
       if (btn) btn.disabled = false;
       await updateMintStatus();
+      await updateBatchBurnResetRuler();
     }
     document.getElementById('refreshBtn').onclick = handleRefresh;
     
@@ -1385,6 +1394,21 @@
         }
       }, { passive: false });
     })();
+
+    // ruler计数器
+    async function updateBatchBurnResetRuler() {
+      if (!contract || !userAccount) {
+        document.getElementById('batchBurnResetRuler').innerText = '';
+        return;
+      }
+      try {
+        const count = await contract.userBatchBurnResetCount(userAccount);
+        const ruler = count % 3;
+        document.getElementById('batchBurnResetRuler').innerText = `BatchBurnAndReset Progress: ${ruler}`;
+      } catch (e) {
+        document.getElementById('batchBurnResetRuler').innerText = '';
+      }
+    }
   </script>
   <script>
     // 选中卡片样式
