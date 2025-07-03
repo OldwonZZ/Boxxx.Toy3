@@ -1229,3 +1229,33 @@
       width: 260px;
       margin: 0 auto;
     }
+    .batch-burn-reset-ruler {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        font-family: 'Barlow Condensed', Arial, sans-serif;
+      }
+      .ruler-bars {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-right: 8px;
+      }
+      .ruler-bar {
+        width: 24px;
+        height: 10px;
+        background: #eee;
+        transition: background 0.2s;
+      }
+  
+      .ruler-labels {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: bold;
+        font-style: italic;
+        color: #FF00F9;
+        line-height: 1.1;
+        letter-spacing: 1px;
+      }
