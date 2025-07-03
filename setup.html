@@ -504,10 +504,6 @@
     // Batch Burn 按钮事件
     batchBurnBtn.onclick = async function() {
       if (!contract || !userAccount) return;
-      if (selectedNFTs.size < 10) {
-        alert('Please select at least 10 NFTs to batch burn.');
-        return;
-      }
       if (!confirm(`Are you sure you want to batch burn these ${selectedNFTs.size} NFTs? This action is irreversible!`)) {
         return;
       }
