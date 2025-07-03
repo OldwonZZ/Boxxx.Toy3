@@ -48,11 +48,9 @@
         <button class="profile-btn batch-burn-btn" id="batchBurnBtn">
           ReBoXXX!
           <div class="info-icon">!</div>
-          <div class="tooltip">Burn 6 cards to get a new BoXXX</div>
+          <div class="tooltip">Burn 6 cards to get a new BoXXX<br>Get 1 EPIC card every 3 times.</div>
         </button>
-        <div id="batchBurnResetRuler" class="batch-burn-reset-ruler" style="display:inline-block;margin-left:16px;vertical-align:middle;position:relative;">
-          <div class="tooltip batch-burn-reset-tooltip" style="display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:8px;white-space:nowrap;z-index:10;pointer-events:none;background:#222;color:#fff;padding:7px 16px;border-radius:8px;font-size:14px;font-weight:normal;box-shadow:0 2px 8px rgba(0,0,0,0.12);text-align:center;">执行3次reboxxx必定会获得一个epic级别的限定boxxx</div>
-        </div>
+        <div id="batchBurnResetRuler" class="batch-burn-reset-ruler"></div>
       </div>
     </div>
     <!-- Mint Row from mint.html -->
@@ -1428,19 +1426,6 @@
         document.getElementById('batchBurnResetRuler').innerHTML = '';
       }
     }
-
-    // 悬停tooltip逻辑
-    (function enableBatchBurnResetRulerTooltip() {
-      const ruler = document.getElementById('batchBurnResetRuler');
-      if (!ruler) return;
-      const tooltip = ruler.querySelector('.batch-burn-reset-tooltip');
-      ruler.addEventListener('mouseenter', function() {
-        if (tooltip) tooltip.style.display = 'block';
-      });
-      ruler.addEventListener('mouseleave', function() {
-        if (tooltip) tooltip.style.display = 'none';
-      });
-    })();
   </script>
   <script>
     // 选中卡片样式
