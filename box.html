@@ -1399,13 +1399,13 @@
       try {
         const count = await contract.userBatchBurnResetCount(userAccount);
         const ruler = count % 3;
-        // 修正逻辑：1只点亮第1条，2点亮前2条，0全灰
+        // 修正逻辑：1时点亮最下方，2时点亮下两条，0时全灰
         let bar0 = '#bbb', bar1 = '#bbb', bar2 = '#bbb';
         if (ruler === 1) {
-          bar0 = '#FF00F9';
+          bar2 = '#FF00F9'; // 只点亮最下方
         } else if (ruler === 2) {
-          bar0 = '#FF00F9';
-          bar1 = '#FF00F9';
+          bar1 = '#FF00F9'; // 先点亮中间
+          bar2 = '#FF00F9'; // 再点亮最下方
         }
         // 构建三条横条
         let bars = '';
