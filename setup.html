@@ -80,7 +80,6 @@
     </div>
     <div id="ownerStatus" style="margin-top: 10px;"></div>
     <div id="batchBurnResetCount" style="margin-top:10px;color:#1976d2;font-weight:bold;"></div>
-    <button id="refreshBatchBurnResetCountBtn" style="margin-top:5px;">Refresh BatchBurnAndReset Count</button>
     <hr style="margin:16px 0;">
     <div>
       <label for="batchBurnThresholdInput">Batch Burn 最低数量：</label>
@@ -369,14 +368,13 @@
               function normalizeUrl(url) {
                 return url ? url.replace(/\/+$/, '') : '';
               }
-              if (tokenURI && defaultBaseURIOnChain && normalizeUrl(tokenURI) !== normalizeUrl(defaultBaseURIOnChain)) {
-                revealed = true;
-              }
               if (tokenURI && tokenURI.includes('unrevealed.json')) {
                 type = 'unreveal';
               } else if (tokenURI && tokenURI.includes('special.json')) {
                 type = 'special';
-              }
+              } else if (tokenId >= 20000) {
+                type = 'reward';
+              } // else 默认是revealed
             } catch (e) {
               console.error(`Failed to get TokenURI for tokenId: ${tokenId}`, e);
             }
@@ -420,7 +418,9 @@
             } else {
               html += `<div style=\"color:red;font-size:12px;height:120px;display:flex;align-items:center;\">Failed to get Token URI</div>`;
             }
-            if (type === 'special') {
+            if (type === 'reward') {
+              html += `<button onclick='burnNFT(${tokenId})'>Burn</button>`;
+            } else if (type === 'special') {
               html += `<button onclick='specialBurn(${tokenId})'>Special Burn</button>`;
             } else if (type === 'unreveal') {
               html += `<button onclick='revealNFT(${tokenId})'>Reveal</button>`;
@@ -847,7 +847,6 @@
         document.getElementById('batchBurnResetCount').innerText = 'Failed to fetch batch burn count';
       }
     }
-    document.getElementById('refreshBatchBurnResetCountBtn').onclick = updateBatchBurnResetCount;
   </script>
 </body>
 </html> 
