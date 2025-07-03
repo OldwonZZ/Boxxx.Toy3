@@ -1,11 +1,11 @@
 {
-  "name": "Blind Box Voucher",
+  "name": "Special Reward",
     "physical": true,
   "description": "Special Reward from Reboxxx",
   "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/reward_1.png",
   "attributes": [
     {
-      "trait_type": "Rarity",
+      "trait_type": "Epic",
       "value": "Special"
     }
   ]
