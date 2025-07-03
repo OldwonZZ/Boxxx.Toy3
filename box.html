@@ -1238,6 +1238,7 @@
         selectedTokenIds.clear();
         updateSelectionInfo();
         await handleRefresh();
+        await updateBatchBurnResetRuler();
       } catch (err) {
         if (err && (err.code === 4001 || (err.message && err.message.toLowerCase().includes('user rejected')))) {
           showModal('Transaction was cancelled by user.');
