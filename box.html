@@ -769,10 +769,7 @@
         await tx.wait();
         // Reveal成功后，获取新NFT的metadata并弹窗展示
         try {
-          const tokenURI = await contract.tokenURI(tokenId);
-          const metadataUrl = tokenURI.startsWith('ipfs://') ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') : tokenURI;
-          const response = await fetch(metadataUrl);
-          const metadata = await response.json();
+          const metadata = await fetchRevealedMetadata(tokenId, 5, 1200);
           const imageUrl = metadata.image ? (metadata.image.startsWith('ipfs://') ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : metadata.image) : '';
           const name = metadata.name || 'NFT';
           let rarity = '';
@@ -1070,11 +1067,8 @@
         let cardsHtml = '';
         for (let i = 0; i < tokenIds.length; i++) {
           try {
-            const tokenId = tokenIds[i];
-            const tokenURI = await contract.tokenURI(tokenId);
-            const metadataUrl = tokenURI.startsWith('ipfs://') ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') : tokenURI;
-            const response = await fetch(metadataUrl);
-            const metadata = await response.json();
+            // 新增：批量reveal也判断tokenURI文件名
+            const metadata = await fetchRevealedMetadata(tokenIds[i], 5, 1200);
             const imageUrl = metadata.image ? (metadata.image.startsWith('ipfs://') ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : metadata.image) : '';
             const name = metadata.name || 'NFT';
             let rarity = '';
@@ -1405,11 +1399,13 @@
       try {
         const count = await contract.userBatchBurnResetCount(userAccount);
         const ruler = count % 3;
-        // 新逻辑：0=全灰，1/2=下两条粉色，上面灰
+        // 修正逻辑：1时点亮最下方，2时点亮下两条，0时全灰
         let bar0 = '#bbb', bar1 = '#bbb', bar2 = '#bbb';
-        if (ruler === 1 || ruler === 2) {
-          bar1 = '#FF00F9';
-          bar2 = '#FF00F9';
+        if (ruler === 1) {
+          bar2 = '#FF00F9'; // 只点亮最下方
+        } else if (ruler === 2) {
+          bar1 = '#FF00F9'; // 先点亮中间
+          bar2 = '#FF00F9'; // 再点亮最下方
         }
         // 构建三条横条
         let bars = '';
@@ -1426,6 +1422,23 @@
       } catch (e) {
         document.getElementById('batchBurnResetRuler').innerHTML = '';
       }
+    }
+
+    function isRevealedTokenURI(tokenURI) {
+      const filename = tokenURI.split('/').pop();
+      return /^\d+\.json$/.test(filename);
+    }
+    async function fetchRevealedMetadata(tokenId, maxTries = 5, interval = 1200) {
+      for (let i = 0; i < maxTries; i++) {
+        const tokenURI = await contract.tokenURI(tokenId);
+        if (isRevealedTokenURI(tokenURI)) {
+          const url = tokenURI.startsWith('ipfs://') ? tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/') : tokenURI;
+          const response = await fetch(url + '?t=' + Date.now(), { cache: 'reload' });
+          return await response.json();
+        }
+        await new Promise(res => setTimeout(res, interval));
+      }
+      throw new Error('Metadata not updated in time');
     }
   </script>
   <script>

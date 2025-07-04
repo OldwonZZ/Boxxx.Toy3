@@ -5,8 +5,8 @@
   "image": "https://raw.githubusercontent.com/OldwonZZ/T3MetaDataTest/main/metadata/assets/reward_2.png",
   "attributes": [
     {
-      "trait_type": "Epic",
-      "value": "Special"
+      "trait_type": "Rarity",
+      "value": "Epic"
     }
   ]
 }
